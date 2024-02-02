@@ -72,11 +72,7 @@ type Responses[Result any] struct {
 	StatusCode   int            `json:"status"`            // supplied on success and error
 }
 
-type Error struct {
-	Title     string `json:"title,omitempty"`
-	ErrorCode int    `json:"errorCode,omitempty"`
-}
-
+// ResponseError supplies detailed error information when an entire request or an item in a response fails
 type ResponseError struct {
 	Title  string `json:"title,omitempty"`
 	Detail string `json:"detail,omitempty"`

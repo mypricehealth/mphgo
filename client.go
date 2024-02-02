@@ -28,7 +28,7 @@ type PriceConfig struct {
 
 // Client is used to interact with the My Price Health API
 type Client struct {
-	*sling.Sling
+	sling *sling.Sling
 }
 
 var _ Pricer = &Client{}
@@ -49,33 +49,45 @@ func NewDefaultClient(apiKey string) *Client {
 	return NewClient(http.DefaultClient, false, apiKey)
 }
 
-// Price is used to get the Medicare price of a single claim
-func (c *Client) Price(ctx context.Context, config PriceConfig, input Claim) Response[Pricing] {
-	const path = "/v1/medicare/price/claim"
-
+func (c Client) receiveResponse(ctx context.Context, s *sling.Sling, path string) Response[Pricing] {
 	var response Response[Pricing]
-	res, err := c.Sling.BodyJSON(input).AddHeaders(getHeaders(config)).Post(path).ReceiveWithContext(ctx, &response, &response)
+	res, err := s.Path(path).ReceiveWithContext(ctx, &response, &response)
 	if err != nil {
 		response.Error = &ResponseError{Title: fmt.Sprintf("fatal error calling %s", path), Detail: err.Error()}
 		response.StatusCode = res.StatusCode
 	}
-
 	return response
 }
 
-// PriceBatch is used to get the Medicare price of multiple claims
-func (c *Client) PriceBatch(ctx context.Context, config PriceConfig, inputs ...Claim) Responses[Pricing] {
-	const path = "/v1/medicare/price/claims"
-
+func (c *Client) receiveResponses(ctx context.Context, s *sling.Sling, path string, count int) Responses[Pricing] {
 	var responses Responses[Pricing]
-	res, err := c.Sling.BodyJSON(inputs).AddHeaders(getHeaders(config)).Post(path).ReceiveWithContext(ctx, &responses, &responses)
+	res, err := s.Path(path).ReceiveWithContext(ctx, &responses, &responses)
 	if err != nil {
 		responses.Error = &ResponseError{Title: fmt.Sprintf("fatal error calling %s", path), Detail: err.Error()}
-		responses.ErrorCount = len(inputs)
+		responses.ErrorCount = count
 		responses.StatusCode = res.StatusCode
 	}
-
 	return responses
+}
+
+// Estimate is used to get the estimated Medicare reimbursement of a single claim
+func (c *Client) Estimate(ctx context.Context, config PriceConfig, input Claim) Response[Pricing] {
+	return c.receiveResponse(ctx, c.sling.BodyJSON(input).AddHeaders(getHeaders(config)).Method("POST"), "/v1/medicare/estimate/claim")
+}
+
+// EstimateBatch is used to get the estimated Medicare reimbursement of multiple claims
+func (c *Client) EstimateBatch(ctx context.Context, config PriceConfig, inputs ...Claim) Responses[Pricing] {
+	return c.receiveResponses(ctx, c.sling.BodyJSON(inputs).AddHeaders(getHeaders(config)).Method("POST"), "/v1/medicare/estimate/claims", len(inputs))
+}
+
+// Price is used to get the Medicare reimbursement of a single claim
+func (c *Client) Price(ctx context.Context, config PriceConfig, input Claim) Response[Pricing] {
+	return c.receiveResponse(ctx, c.sling.BodyJSON(input).AddHeaders(getHeaders(config)).Method("POST"), "/v1/medicare/price/claim")
+}
+
+// PriceBatch is used to get the Medicare reimbursement of multiple claims
+func (c *Client) PriceBatch(ctx context.Context, config PriceConfig, inputs ...Claim) Responses[Pricing] {
+	return c.receiveResponses(ctx, c.sling.BodyJSON(inputs).AddHeaders(getHeaders(config)).Method("POST"), "/v1/medicare/price/claims", len(inputs))
 }
 
 func getHeaders(config PriceConfig) http.Header {
