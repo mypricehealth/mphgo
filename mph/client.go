@@ -36,9 +36,9 @@ var _ Pricer = &Client{}
 // NewClient is used to create a new API client for the My Price Health API. In most cases
 // it is simpler to use NewDefaultClient to create a client with the default settings.
 func NewClient(doer sling.Doer, isTest bool, apiKey string) *Client {
-	url := "https://api.mypricehealth.com"
+	url := "https://api.myprice.health"
 	if isTest {
-		url = "https://api-test.mypricehealth.com"
+		url = "https://api-test.myprice.health"
 	}
 	client := &Client{sling.New().Doer(doer).Base(url).Set("x-api-key", apiKey)}
 	return client

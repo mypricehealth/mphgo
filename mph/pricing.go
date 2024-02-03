@@ -105,7 +105,7 @@ type OutpatientPriceDetail struct {
 	TerminatedDeviceProcedureOffsetAmount float64 `json:"terminatedDeviceProcedureOffsetAmount,omitempty"` // Credit for devices that are not used due to a terminated procedure
 }
 
-// ProviderDetail contains basic information about the provider and/or locality used for pricing
+// ProviderDetail contains basic information about the provider and/or locality used for pricing.
 // Not all fields are returned with every pricing request. For example, the CMS Certification
 // Number (CCN) is only returned for facilities which have a CCN such as hospitals.
 type ProviderDetail struct {

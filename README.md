@@ -1,5 +1,7 @@
 # mphgo
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/mypricehealth/mphgo.svg)](https://pkg.go.dev/github.com/mypricehealth/mphgo)
+
 <img src="https://raw.githubusercontent.com/mypricehealth/mphgo/main/gopherdoc.png">
 
 A Go client library to make it easy to connect to the My Price Health API. It can be accessed at https://api.myprice.health. This client library makes it easy to connect to the API for Go developers.
