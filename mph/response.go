@@ -77,3 +77,7 @@ type ResponseError struct {
 	Title  string `json:"title,omitempty"`
 	Detail string `json:"detail,omitempty"`
 }
+
+func (e *ResponseError) Error() string {
+	return e.Title + ": " + e.Detail
+}
