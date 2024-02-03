@@ -11,6 +11,24 @@ The My Price Health API can be used to get pricing and estimated pricing for Med
 ## Usage
 
 ```go
+import (
+	"context"
+	"fmt"
+	"testing"
+
+	"github.com/mypricehealth/mphgo/mph"
+)
+
+func TestClient(t *testing.T) {
+	input := mph.Claim{}
+
+	c := mph.NewDefaultClient("apiKey")
+	result := c.Price(context.Background(), input)
+	if result.Error != nil {
+		t.Error(result.Error)
+	}
+	fmt.Println(result)
+}
 
 ```
 
