@@ -13,6 +13,8 @@ import (
 type Pricer interface {
 	Price(ctx context.Context, config PriceConfig, input Claim) Response[Pricing]
 	PriceBatch(ctx context.Context, config PriceConfig, inputs ...Claim) Responses[Pricing]
+	EstimateClaims(ctx context.Context, inputs ...Claim) Responses[Pricing]
+	EstimateRateSheet(ctx context.Context, inputs ...RateSheet) Responses[Pricing]
 }
 
 // PriceConfig is used to configure the behavior of the pricing API
@@ -70,14 +72,14 @@ func (c *Client) receiveResponses(ctx context.Context, s *sling.Sling, path stri
 	return responses
 }
 
-// Estimate is used to get the estimated Medicare reimbursement of a single claim
-func (c *Client) Estimate(ctx context.Context, config PriceConfig, input Claim) Response[Pricing] {
-	return c.receiveResponse(ctx, c.sling.BodyJSON(input).AddHeaders(getHeaders(config)).Method("POST"), "/v1/medicare/estimate/claim")
+// EstimateRateSheet is used to get the estimated Medicare reimbursement of a single claim
+func (c *Client) EstimateRateSheet(ctx context.Context, inputs ...RateSheet) Responses[Pricing] {
+	return c.receiveResponses(ctx, c.sling.BodyJSON(inputs).Method("POST"), "/v1/medicare/estimate/rate-sheet", len(inputs))
 }
 
-// EstimateBatch is used to get the estimated Medicare reimbursement of multiple claims
-func (c *Client) EstimateBatch(ctx context.Context, config PriceConfig, inputs ...Claim) Responses[Pricing] {
-	return c.receiveResponses(ctx, c.sling.BodyJSON(inputs).AddHeaders(getHeaders(config)).Method("POST"), "/v1/medicare/estimate/claims", len(inputs))
+// EstimateClaims is used to get the estimated Medicare reimbursement of multiple claims
+func (c *Client) EstimateClaims(ctx context.Context, inputs ...Claim) Responses[Pricing] {
+	return c.receiveResponses(ctx, c.sling.BodyJSON(inputs).Method("POST"), "/v1/medicare/estimate/claims", len(inputs))
 }
 
 // Price is used to get the Medicare reimbursement of a single claim

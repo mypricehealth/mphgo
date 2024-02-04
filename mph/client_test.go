@@ -46,43 +46,43 @@ func TestClient(t *testing.T) {
 	expectedAllOptionsHeder.Set("use-best-drg-price", "true")
 
 	// Price TEST environment fail
-	expectedRequest := newRequest("POST", "https://api-test.mypricehealth.com/v1/medicare/price/claim", Claim{}, expectedRequestHeader)
+	expectedRequest := newRequest("POST", "https://api-test.myprice.health/v1/medicare/price/claim", Claim{}, expectedRequestHeader)
 	clientTestFail.Price(context.Background(), PriceConfig{}, Claim{})
 	assertRequests(t, expectedRequest, doFail.RequestsMade[0])
 
 	// Price TEST environment fail
-	expectedRequest = newRequest("POST", "https://api-test.mypricehealth.com/v1/medicare/price/claim", Claim{}, expectedAllOptionsHeder)
+	expectedRequest = newRequest("POST", "https://api-test.myprice.health/v1/medicare/price/claim", Claim{}, expectedAllOptionsHeder)
 	clientTestFail.Price(context.Background(), PriceConfig{IsCommercial: true, DisableCostBasedReimbursement: true, UseCommercialSyntheticForNotAllowed: true, UseDRGFromGrouper: true, UseBestDRGPrice: true, OverrideThreshold: 300, IncludeEdits: true}, Claim{})
 	assertRequests(t, expectedRequest, doFail.RequestsMade[1])
 
 	// Price success
-	expectedRequest = newRequest("POST", "https://api.mypricehealth.com/v1/medicare/price/claim", Claim{}, expectedRequestHeader)
+	expectedRequest = newRequest("POST", "https://api.myprice.health/v1/medicare/price/claim", Claim{}, expectedRequestHeader)
 	clientSuccess.Price(context.Background(), PriceConfig{}, Claim{})
 	assertRequests(t, expectedRequest, doSuccess.RequestsMade[0])
 
 	// Price fail
-	expectedRequest = newRequest("POST", "https://api.mypricehealth.com/v1/medicare/price/claim", Claim{}, expectedRequestHeader)
+	expectedRequest = newRequest("POST", "https://api.myprice.health/v1/medicare/price/claim", Claim{}, expectedRequestHeader)
 	clientFail.Price(context.Background(), PriceConfig{}, Claim{})
 	assertRequests(t, expectedRequest, doFail.RequestsMade[2])
 
 	// PriceBatch success
-	expectedRequest = newRequest("POST", "https://api.mypricehealth.com/v1/medicare/price/claims", []Claim{{}}, expectedRequestHeader)
+	expectedRequest = newRequest("POST", "https://api.myprice.health/v1/medicare/price/claims", []Claim{{}}, expectedRequestHeader)
 	clientSuccess.PriceBatch(context.Background(), PriceConfig{}, Claim{})
 	assertRequests(t, expectedRequest, doSuccess.RequestsMade[1])
 
 	// PriceBatch fail
-	expectedRequest = newRequest("POST", "https://api.mypricehealth.com/v1/medicare/price/claims", []Claim{{}}, expectedRequestHeader)
+	expectedRequest = newRequest("POST", "https://api.myprice.health/v1/medicare/price/claims", []Claim{{}}, expectedRequestHeader)
 	clientFail.PriceBatch(context.Background(), PriceConfig{}, Claim{})
 	assertRequests(t, expectedRequest, doFail.RequestsMade[3])
 
 	// Estimate success
-	expectedRequest = newRequest("POST", "https://api.mypricehealth.com/v1/medicare/estimate/claim", Claim{}, expectedRequestHeader)
-	clientSuccess.Estimate(context.Background(), PriceConfig{}, Claim{})
+	expectedRequest = newRequest("POST", "https://api.myprice.health/v1/medicare/estimate/rate-sheet", []RateSheet{{}}, expectedRequestHeader)
+	clientSuccess.EstimateRateSheet(context.Background(), RateSheet{})
 	assertRequests(t, expectedRequest, doSuccess.RequestsMade[2])
 
 	// EstimateBatch success
-	expectedRequest = newRequest("POST", "https://api.mypricehealth.com/v1/medicare/estimate/claims", []Claim{{}}, expectedRequestHeader)
-	clientSuccess.EstimateBatch(context.Background(), PriceConfig{}, Claim{})
+	expectedRequest = newRequest("POST", "https://api.myprice.health/v1/medicare/estimate/claims", []Claim{{}}, expectedRequestHeader)
+	clientSuccess.EstimateClaims(context.Background(), Claim{})
 	assertRequests(t, expectedRequest, doSuccess.RequestsMade[3])
 }
 
