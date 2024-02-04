@@ -1,20 +1,4 @@
-# mphgo
-
-[![Go Reference](https://pkg.go.dev/badge/github.com/mypricehealth/mphgo.svg)](https://pkg.go.dev/github.com/mypricehealth/mphgo)
-
-<img src="https://raw.githubusercontent.com/mypricehealth/mphgo/main/gopherdoc.png">
-
-A Go client library to make it easy to connect to the My Price Health API. It can be accessed at https://api.myprice.health. This client library makes it easy to connect to the API for Go developers.
-
-## The My Price Health API
-
-The My Price Health API can be used to get pricing and estimated pricing for Medicare reimbursement. Medicare benchmarks are a great tool to advance the quadruple aim in healthcare.
-
-## Usage
-
-See also the examples folder for additional examples
-
-```go
+package examples
 
 import (
 	"context"
@@ -70,15 +54,3 @@ var inpatientClaim = mph.Claim{
 		{LineNumber: "3", RevCode: "370", BilledAmount: 16414, DateFrom: mph.NewDate(2020, 2, 27), DateThrough: mph.NewDate(2020, 2, 27), ProcedureCode: "", Quantity: 48},
 	},
 }
-```
-
-## Why Medicare Pricing?
-
-It is possible and practical to achieve the quadruple aim in healthcare. With Medicare pricing for all your claims data, you’ll have the tools you need to:
-
-- Lower cost through better provider negotiation, better plan design and more engaged members
-- Better outcomes through an effective health plan prioritizing quality care, low cost and better health management
-- Happier plan members through education and a better health plan
-- More engaged providers who act as partners, not adversaries
-
-For more information about how Medicare pricing can advance the quadruple aim in healthcare, see our [Advancing the quadruple aim with Medicare pricing white paper](https://myprice.health/Advancing%20the%20quadruple%20aim%20with%20Medicare%20pricing%20-%20v2.pdf).
