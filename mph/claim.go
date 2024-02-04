@@ -114,3 +114,28 @@ type Service struct {
 	DiagnosisPointers  []int8   `json:"diagnosisPointers,omitempty"`  // Diagnosis pointers (from SV107)
 	AmbulancePickupZIP string   `json:"ambulancePickupZIP,omitempty"` // ZIP code where ambulance picked up patient. Supplied if different than claim-level value (from NM1 PW)
 }
+
+type RateSheet struct {
+	NPI               string             `json:"npi,omitempty"`               // National Provider Identifier of the provider (from NM109, required)
+	ProviderFirstName string             `json:"providerFirstName,omitempty"` // First name of the provider (NM104, highly recommended)
+	ProviderLastName  string             `json:"providerLastName,omitempty"`  // Last name of the provider (from NM103, highly recommended)
+	ProviderOrgName   string             `json:"providerOrgName,omitempty"`   // Organization name of the provider (from NM103, highly recommended)
+	ProviderAddress   string             `json:"providerAddress,omitempty"`   // Address of the provider (from N301, highly recommended)
+	ProviderCity      string             `json:"providerCity,omitempty"`      // City of the provider (from N401, highly recommended)
+	ProviderState     string             `json:"providerState"`               // State of the provider (from N402, highly recommended)
+	ProviderZip       string             `json:"providerZIP"`                 // ZIP code of the provider (from N403, required)
+	FormType          FormType           `json:"formType"`                    // Type of form used to submit the claim. Can be HCFA or UB-04 (from CLM05_02)
+	BillTypeOrPOS     string             `json:"billTypeOrPOS"`               // Describes type of facility where services were rendered (from CLM05_01)
+	DRG               string             `json:"drg,omitempty"`               // Diagnosis Related Group for inpatient services (from HI DR)
+	BilledAmount      float64            `json:"billedAmount,omitempty"`      // Billed amount from provider (from CLM02)
+	AllowedAmount     float64            `json:"allowedAmount,omitempty"`     // Amount allowed by the plan for payment. Both member and plan responsibility (non-EDI)
+	PaidAmount        float64            `json:"paidAmount,omitempty"`        // Amount paid by the plan for the claim (non-EDI)
+	Services          []RateSheetService `json:"services,omitempty"`          // One or more services provided to the patient (from LX loop)
+}
+
+type RateSheetService struct {
+	ProcedureCode      string   `json:"procedureCode,omitempty"`      // Procedure code (from SV101_02 / SV202_02)
+	ProcedureModifiers []string `json:"procedureModifiers,omitempty"` // Procedure modifiers (from SV101_03, 4, 5, 6 / SV202_03, 4, 5, 6)
+	BilledAmount       float64  `json:"billedAmount,omitempty"`       // Billed charge for the service (from SV102 / SV203)
+	AllowedAmount      float64  `json:"allowedAmount,omitempty"`      // Plan allowed amount for the service (non-EDI)
+}
