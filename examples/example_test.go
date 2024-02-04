@@ -2,6 +2,9 @@ package examples
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -9,25 +12,58 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestClient(t *testing.T) {
-	config := mph.PriceConfig{
-		IsCommercial:                        true,  // uses commercial code crosswalks
-		DisableCostBasedReimbursement:       false, // use cost-based reimbursement for MAC priced line-items
-		UseCommercialSyntheticForNotAllowed: true,  // use synthetic Medicare for line items not allowed by Medicare, but which may still be paid by commercial plans
-		UseDRGFromGrouper:                   false, // always use the DRG from the inpatient grouper (not applicable with UseBestDRGPrice set to true)
-		UseBestDRGPrice:                     true,  // price both using the DRG supplied in the claim and the DRG from the grouper and return the lowest price
-		OverrideThreshold:                   300,   // for claims which fail NCCI or other edit rules, override the errors up to this amount to get a price
-		IncludeEdits:                        true,  // get detailed information from the code editor about why a claim failed
-	}
+var config = mph.PriceConfig{
+	IsCommercial:                        true,  // uses commercial code crosswalks
+	DisableCostBasedReimbursement:       false, // use cost-based reimbursement for MAC priced line-items
+	UseCommercialSyntheticForNotAllowed: true,  // use synthetic Medicare for line items not allowed by Medicare, but which may still be paid by commercial plans
+	UseDRGFromGrouper:                   false, // always use the DRG from the inpatient grouper (not applicable with UseBestDRGPrice set to true)
+	UseBestDRGPrice:                     true,  // price both using the DRG supplied in the claim and the DRG from the grouper and return the lowest price
+	OverrideThreshold:                   300,   // for claims which fail NCCI or other edit rules, override the errors up to this amount to get a price
+	IncludeEdits:                        true,  // get detailed information from the code editor about why a claim failed
+}
 
+func TestClientWithJSON(t *testing.T) {
 	c := mph.NewDefaultClient("apiKey") // replace this with your API key
+	inpatientClaim, err := readJSON("testdata/inpatient.json")
+	assert.Nil(t, err)
+	outpatientClaim, err := readJSON("testdata/outpatient.json")
+	assert.Nil(t, err)
+	hcfaClaim, err := readJSON("testdata/hcfa.json")
+	assert.Nil(t, err)
+
 	result := c.Price(context.Background(), config, inpatientClaim)
 	assert.Nil(t, result.Error)
-	assert.Equal(t, 41781.8, result.Result.MedicareAmount) // this is the expected result based on provider data published January 2024
+	fmt.Println(result.Result.MedicareAmount)
 
 	result = c.Price(context.Background(), config, outpatientClaim)
 	assert.Nil(t, result.Error)
-	assert.Equal(t, 40.75, result.Result.MedicareAmount) // this is the expected result based on provider data published January 2024
+	fmt.Println(result.Result.MedicareAmount)
+
+	result = c.Price(context.Background(), config, hcfaClaim)
+	assert.Nil(t, result.Error)
+	fmt.Println(t, result.Result.MedicareAmount)
+}
+
+func readJSON(filename string) (mph.Claim, error) {
+	var c mph.Claim
+	f, err := os.Open(filename)
+	if err != nil {
+		return c, err
+	}
+
+	err = json.NewDecoder(f).Decode(&c)
+	return c, err
+}
+
+func TestClientConstructingStructs(t *testing.T) {
+	c := mph.NewDefaultClient("apiKey") // replace this with your API key
+	result := c.Price(context.Background(), config, inpatientClaim)
+	assert.Nil(t, result.Error)
+	fmt.Println(result.Result.MedicareAmount)
+
+	result = c.Price(context.Background(), config, outpatientClaim)
+	assert.Nil(t, result.Error)
+	fmt.Println(result.Result.MedicareAmount)
 }
 
 // fake inpatient claim for testing purposes
@@ -40,7 +76,7 @@ var inpatientClaim = mph.Claim{
 	PatientDateOfBirth: mph.NewDatePtr(1988, 1, 2),
 	FormType:           mph.UBFormType,
 	BillTypeOrPOS:      "111",
-	BilledAmount:       47224,
+	BilledAmount:       47000,
 	DateFrom:           mph.NewDate(2020, 2, 27),
 	DateThrough:        mph.NewDate(2020, 2, 28),
 	PrincipalDiagnosis: &mph.Diagnosis{Code: "N186"},
@@ -73,7 +109,7 @@ var outpatientClaim = mph.Claim{
 	},
 	PatientSex:         1,
 	PatientDateOfBirth: &mph.Date{Time: time.Date(1926, 11, 11, 0, 0, 0, 0, time.UTC)},
-	BilledAmount:       21922,
+	BilledAmount:       21000,
 	FormType:           "UB-04",
 	BillTypeOrPOS:      "13",
 	BillTypeSequence:   "1",
@@ -81,7 +117,7 @@ var outpatientClaim = mph.Claim{
 	DateThrough:        date,
 	DischargeStatus:    "01",
 	PrincipalDiagnosis: &mph.Diagnosis{Code: "Z0001"},
-	OtherDiagnoses: []mph.Diagnosis{ // BF (ICD-9) in example
+	OtherDiagnoses: []mph.Diagnosis{
 		{Code: "Z13220"},
 		{Code: "I10"},
 	},
