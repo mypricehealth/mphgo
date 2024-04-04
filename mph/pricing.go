@@ -3,6 +3,7 @@ package mph
 type ClaimRepricingCode string
 type LineRepricingCode string
 type HospitalType string
+type RuralIndicator string
 
 const (
 	// claim-level repricing codes
@@ -37,6 +38,11 @@ const (
 	ChildrensHospitalType      HospitalType = "Childrens"
 	PsychiatricHospitalType    HospitalType = "Psychiatric"
 	AcuteCareDODHospitalType   HospitalType = "Acute Care - Department of Defense"
+
+	// Rural indicators
+	RuralIndicatorRural      RuralIndicator = "R"
+	RuralIndicatorSuperRural RuralIndicator = "B"
+	RuralIndicatorUrban      RuralIndicator = ""
 )
 
 // Pricing contains the results of a pricing request
@@ -109,12 +115,12 @@ type OutpatientPriceDetail struct {
 // Not all fields are returned with every pricing request. For example, the CMS Certification
 // Number (CCN) is only returned for facilities which have a CCN such as hospitals.
 type ProviderDetail struct {
-	CCN            string       `json:"ccn,omitempty"`           // CMS Certification Number for the facility
-	MAC            uint16       `json:"mac"`                     // Medicare Administrative Contractor number
-	Locality       uint8        `json:"locality"`                // Geographic locality number used for pricing
-	RuralIndicator byte         `json:"ruralIndicator"`          // Indicates whether provider is Rural (R), Super Rural (B), or Urban (blank)
-	SpecialtyType  string       `json:"specialtyType,omitempty"` // Medicare provider specialty type
-	HospitalType   HospitalType `json:"hospitalType,omitempty"`  // Type of hospital
+	CCN            string         `json:"ccn,omitempty"`           // CMS Certification Number for the facility
+	MAC            uint16         `json:"mac"`                     // Medicare Administrative Contractor number
+	Locality       uint8          `json:"locality"`                // Geographic locality number used for pricing
+	RuralIndicator RuralIndicator `json:"ruralIndicator"`          // Indicates whether provider is Rural (R), Super Rural (B), or Urban (blank)
+	SpecialtyType  string         `json:"specialtyType,omitempty"` // Medicare provider specialty type
+	HospitalType   HospitalType   `json:"hospitalType,omitempty"`  // Type of hospital
 }
 
 // ClaimEdits contains errors which cause the claim to be denied, rejected, suspended, or returned to the provider.
