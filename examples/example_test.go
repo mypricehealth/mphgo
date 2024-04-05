@@ -23,6 +23,8 @@ var config = mph.PriceConfig{
 }
 
 func TestClientWithJSON(t *testing.T) {
+	t.SkipNow()
+
 	c := mph.NewDefaultClient("apiKey") // replace this with your API key
 	inpatientClaim, err := readJSON("testdata/inpatient.json")
 	assert.Nil(t, err)
@@ -56,6 +58,8 @@ func readJSON(filename string) (mph.Claim, error) {
 }
 
 func TestClientConstructingStructs(t *testing.T) {
+	t.SkipNow()
+
 	c := mph.NewDefaultClient("apiKey") // replace this with your API key
 	result := c.Price(context.Background(), config, inpatientClaim)
 	assert.Nil(t, result.Error)
