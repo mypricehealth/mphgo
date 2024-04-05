@@ -1,8 +1,9 @@
-package examples
+package main
 
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/mypricehealth/mphgo/mph"
 )
@@ -21,7 +22,7 @@ func main() {
 	c := mph.NewDefaultClient("apiKey") // replace this with your API key
 	result := c.Price(context.Background(), config, inpatientClaim)
 	if result.Error != nil {
-		fmt.Println(result.Error)
+		log.Println(result.Error)
 	} else {
 		fmt.Println(result.Result.MedicareAmount)
 	}
