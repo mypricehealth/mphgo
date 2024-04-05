@@ -2,10 +2,16 @@ package mph
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestNewDatePtr(t *testing.T) {
+	d := NewDatePtr(2001, 02, 03)
+	assert.Equal(t, &Date{Time: time.Date(2001, 02, 03, 0, 0, 0, 0, time.UTC)}, d)
+}
 
 func TestMarshalJSON(t *testing.T) {
 	d := NewDate(2020, 1, 1)
