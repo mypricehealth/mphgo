@@ -62,7 +62,7 @@ type Pricing struct {
 	ProviderDetail          *ProviderDetail        `json:"providerDetail,omitempty"`          // The provider details used when pricing the claim
 	EditDetail              *ClaimEdits            `json:"editDetail,omitempty"`              // Errors which cause the claim to be denied, rejected, suspended, or returned to the provider
 	PricerResult            string                 `json:"pricerResult,omitempty"`            // Pricer return details
-	Services                []Service              `json:"services,omitempty"`                // Pricing for each service line on the claim
+	Services                []PricedService        `json:"services,omitempty"`                // Pricing for each service line on the claim
 	EditError               *ResponseError         `json:"error,omitempty"`                   // An error that occurred during some step of the pricing process
 }
 
