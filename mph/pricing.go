@@ -4,6 +4,7 @@ type ClaimRepricingCode string
 type LineRepricingCode string
 type HospitalType string
 type RuralIndicator string
+type MedicareSource string
 
 const (
 	// claim-level repricing codes
@@ -45,6 +46,28 @@ const (
 	RuralIndicatorUrban      RuralIndicator = ""
 )
 
+const (
+	MedicareSourceAmbulance              MedicareSource = "AmbulanceFS"
+	MedicareSourceAnesthesia             MedicareSource = "AnesthesiaFS"
+	MedicareSourceCriticalAccessHospital MedicareSource = "CAH pricer"
+	MedicareSourceDrugs                  MedicareSource = "DrugsFS"
+	MedicareSourceEditError              MedicareSource = "Claim editor"
+	MedicareSourceEstimateByCodeOnly     MedicareSource = "CodeOnly"
+	MedicareSourceEstimateByLocalityCode MedicareSource = "LocalityCode"
+	MedicareSourceEstimateByLocalityOnly MedicareSource = "LocalityOnly"
+	MedicareSourceEstimateByNational     MedicareSource = "National"
+	MedicareSourceEstimateByStateCode    MedicareSource = "StateCode"
+	MedicareSourceEstimateByStateOnly    MedicareSource = "StateOnly"
+	MedicareSourceEstimateByUnknown      MedicareSource = "Unknown"
+	MedicareSourceInpatient              MedicareSource = "IPPS"
+	MedicareSourceLabs                   MedicareSource = "LabsFS"
+	MedicareSourceMPFS                   MedicareSource = "MPFS"
+	MedicareSourceOutpatient             MedicareSource = "Outpatient pricer"
+	MedicareSourceManualPricing          MedicareSource = "Manual Pricing"
+	MedicareSourceSNF                    MedicareSource = "SNF PPS"
+	MedicareSourceSynthetic              MedicareSource = "Synthetic Medicare"
+)
+
 // Pricing contains the results of a pricing request
 type Pricing struct {
 	ClaimID                 string                 `json:"claimID,omitempty"`                 // The unique identifier for the claim (copied from input)
@@ -56,7 +79,7 @@ type Pricing struct {
 	AllowedRepricingCode    ClaimRepricingCode     `json:"allowedRepricingCode,omitempty"`    // Explains the methodology used to calculate allowed amount (CON, RBP, SCA, or IFO)
 	AllowedRepricingNote    string                 `json:"allowedRepricingNote,omitempty"`    // Note explaining approach for pricing or reason for error
 	MedicareStdDev          float64                `json:"medicareStdDev,omitempty"`          // The standard deviation of the estimated Medicare amount (estimates service only)
-	MedicareSource          string                 `json:"medicareSource,omitempty"`          // Source of the Medicare amount (e.g. physician fee schedule, OPPS, etc.)
+	MedicareSource          MedicareSource         `json:"medicareSource,omitempty"`          // Source of the Medicare amount (e.g. physician fee schedule, OPPS, etc.)
 	InpatientPriceDetail    *InpatientPriceDetail  `json:"inpatientPriceDetail,omitempty"`    // Details about the inpatient pricing
 	OutpatientPriceDetail   *OutpatientPriceDetail `json:"outpatientPriceDetail,omitempty"`   // Details about the outpatient pricing
 	ProviderDetail          *ProviderDetail        `json:"providerDetail,omitempty"`          // The provider details used when pricing the claim
@@ -78,7 +101,7 @@ type PricedService struct {
 	TechnicalComponentAmount    float64           `json:"tcAmount,omitempty"`                // Amount Medicare would pay for the technical component
 	ProfessionalComponentAmount float64           `json:"pcAmount,omitempty"`                // Amount Medicare would pay for the professional component
 	MedicareStdDev              float64           `json:"medicareStdDev,omitempty"`          // Standard deviation of the estimated Medicare amount (estimates service only)
-	MedicareSource              string            `json:"medicareSource,omitempty"`          // Source of the Medicare amount (e.g. physician fee schedule, OPPS, etc.)
+	MedicareSource              MedicareSource    `json:"medicareSource,omitempty"`          // Source of the Medicare amount (e.g. physician fee schedule, OPPS, etc.)
 	PricerResult                string            `json:"pricerResult,omitempty"`            // Pricing service return details
 	StatusIndicator             string            `json:"statusIndicator,omitempty"`         // Code which gives more detail about how Medicare pays for the service
 	PaymentIndicator            string            `json:"paymentIndicator,omitempty"`        // Text which explains the type of payment for Medicare
