@@ -104,6 +104,7 @@ type InpatientPriceDetail struct {
 	UncompensatedCareAmount        float64 `json:"uncompensatedCareAmount,omitempty"`        // Additional amount paid for patients who are unable to pay for their care
 	ReadmissionAdjustmentAmount    float64 `json:"readmissionAdjustmentAmount,omitempty"`    // Adjustment amount for hospitals with high readmission rates
 	ValueBasedPurchasingAmount     float64 `json:"valueBasedPurchasingAmount,omitempty"`     // Adjustment for hospitals based on quality measures
+	WageIndex                      float64 `json:"wageIndex,omitempty"`                      // Wage index used for geographic adjustment
 }
 
 // OutpatientPriceDetail contains pricing details for an outpatient claim
@@ -116,6 +117,7 @@ type OutpatientPriceDetail struct {
 	SecondDeviceOffsetAmount              float64 `json:"secondDeviceOffsetAmount,omitempty"`              // Amount built into the APC payment for certain devices
 	FullOrPartialDeviceCreditOffsetAmount float64 `json:"fullOrPartialDeviceCreditOffsetAmount,omitempty"` // Credit for devices that are supplied for free or at a reduced cost
 	TerminatedDeviceProcedureOffsetAmount float64 `json:"terminatedDeviceProcedureOffsetAmount,omitempty"` // Credit for devices that are not used due to a terminated procedure
+	WageIndex                             float64 `json:"wageIndex,omitempty"`                             // Wage index used for geographic adjustment
 }
 
 // ProviderDetail contains basic information about the provider and/or locality used for pricing
