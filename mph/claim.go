@@ -32,9 +32,12 @@ var (
 	MSPAdjustmentBillTypeSequence          BillTypeSequence = "M"
 	QIOAdjustmentBillTypeSequence          BillTypeSequence = "P"
 	ProviderAdjustmentBillTypeSequence     BillTypeSequence = "Q"
-	SexTypeUnknown                         SexType          = 0
-	SexTypeMale                            SexType          = 1
-	SexTypeFemale                          SexType          = 2
+)
+
+var (
+	SexTypeUnknown SexType = 0
+	SexTypeMale    SexType = 1
+	SexTypeFemale  SexType = 2
 )
 
 type Claim struct {
@@ -67,6 +70,9 @@ type Claim struct {
 	Services           []Service        `json:"services,omitempty"`           // One or more services provided to the patient (from LX loop)
 }
 
+// Provider represents the service provider that rendered healthcare services on behalf of the patient.
+// This can be found in Loop 2000A and/or Loop 2310 NM101-77 at the claim level, and may also be overridden
+// at the service level in the 2400 loop.
 type Provider struct {
 	NPI                      string   `json:"npi,omitempty"`                      // National Provider Identifier of the provider (from NM109, required)
 	ProviderTaxID            string   `json:"providerTaxID,omitempty"`            // Tax ID of the provider (from REF highly recommended)
@@ -87,20 +93,21 @@ type Provider struct {
 }
 
 type Diagnosis struct { // Principal, Other Diagnosis, Admitting Diagnosis, External Cause of Injury
-	Code               string `json:"code,omitempty"               fixed:"1,9"`   // ICD-10 diagnosis code (from HIxx_02)
-	PresentOnAdmission string `json:"presentOnAdmission,omitempty" fixed:"10,13"` // Flag indicates whether diagnosis was present at the time of admission (from HIxx_09)
+	Code               string `json:"code,omitempty"`               // ICD-10 diagnosis code (from HIxx_02)
+	PresentOnAdmission string `json:"presentOnAdmission,omitempty"` // Flag indicates whether diagnosis was present at the time of admission (from HIxx_09)
 }
 
 type ValueCode struct {
-	Code   string          `json:"code,omitempty"   fixed:"1,2"`        // Code indicating the type of value provided (from HIxx_02)
-	Amount decimal.Decimal `json:"amount,omitempty" fixed:"3,11,right"` // Amount associated with the value code (from HIxx_05)
+	Code   string          `json:"code,omitempty"`   // Code indicating the type of value provided (from HIxx_02)
+	Amount decimal.Decimal `json:"amount,omitempty"` // Amount associated with the value code (from HIxx_05)
 }
 
 type Service struct {
 	Provider                    // Additional provider information specific to this service item
-	LineNumber         string   `json:"lineNumber,omitempty"`         // Unique line number for the service item (from LX01)
-	RevCode            string   `json:"revCode,omitempty"`            // Revenue code (from SV2_01)
-	ProcedureCode      string   `json:"procedureCode,omitempty"`      // Procedure code (from SV101_02 / SV202_02)
+	LineNumber         string   `json:"lineNumber,omitempty"`    // Unique line number for the service item (from LX01)
+	RevCode            string   `json:"revCode,omitempty"`       // Revenue code (from SV2_01)
+	ProcedureCode      string   `json:"procedureCode,omitempty"` // Procedure code (from SV101_02 / SV202_02)
+	HIPPSCode          string   `json:"hippsCode,omitempty"`
 	ProcedureModifiers []string `json:"procedureModifiers,omitempty"` // Procedure modifiers (from SV101_03, 4, 5, 6 / SV202_03, 4, 5, 6)
 	DrugCode           string   `json:"drugCode,omitempty"`           // National Drug Code (from LIN03)
 	DateFrom           Date     `json:"dateFrom,omitempty"`           // Begin date of service (from DTP 472)
