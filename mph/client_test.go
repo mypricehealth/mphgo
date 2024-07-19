@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
 	"testing"
 
+	"braces.dev/errtrace"
 	"github.com/mypricehealth/sling"
 	"github.com/stretchr/testify/assert"
 )
@@ -21,7 +21,7 @@ func TestNewDefaultClient(t *testing.T) {
 
 func TestClient(t *testing.T) {
 	doSuccess := &fakeDoer{Response: &http.Response{StatusCode: 200, Body: io.NopCloser(strings.NewReader(""))}}
-	doFail := &fakeDoer{Response: &http.Response{StatusCode: 400, Body: io.NopCloser(strings.NewReader(""))}, Error: fmt.Errorf("error")}
+	doFail := &fakeDoer{Response: &http.Response{StatusCode: 400, Body: io.NopCloser(strings.NewReader(""))}, Error: errtrace.Errorf("error")}
 
 	clientSuccess := NewClient(doSuccess, false, "test")
 	assert.NotNil(t, clientSuccess.sling)
@@ -118,7 +118,7 @@ type fakeDoer struct {
 
 func (f *fakeDoer) Do(req *http.Request) (*http.Response, error) {
 	f.RequestsMade = append(f.RequestsMade, req)
-	return f.Response, f.Error
+	return f.Response, errtrace.Wrap(f.Error)
 }
 
 var _ sling.Doer = &fakeDoer{}
