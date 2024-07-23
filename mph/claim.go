@@ -118,7 +118,6 @@ type Service struct {
 	Quantity           float64  `json:"quantity"`                     // Quantity of the service (from SV104 / SV205)
 	Units              string   `json:"units,omitempty"`              // Units connected to the quantity given (from SV103 / SV204)
 	PlaceOfService     string   `json:"placeOfService,omitempty"`     // Place of service code (from SV105)
-	DiagnosisPointers  []int8   `json:"diagnosisPointers,omitempty"`  // Diagnosis pointers (from SV107)
 	AmbulancePickupZIP string   `json:"ambulancePickupZIP,omitempty"` // ZIP code where ambulance picked up patient. Supplied if different than claim-level value (from NM1 PW)
 }
 
