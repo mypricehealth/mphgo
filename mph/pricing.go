@@ -157,31 +157,31 @@ type ProviderDetail struct {
 
 // ClaimEdits contains errors which cause the claim to be denied, rejected, suspended, or returned to the provider.
 type ClaimEdits struct {
-	ClaimOverallDisposition          string   `json:"claimOverallDisposition,omitempty"`
-	ClaimRejectionDisposition        string   `json:"claimRejectionDisposition,omitempty"`
-	ClaimDenialDisposition           string   `json:"claimDenialDisposition,omitempty"`
-	ClaimReturnToProviderDisposition string   `json:"claimReturnToProviderDisposition,omitempty"`
-	ClaimSuspensionDisposition       string   `json:"claimSuspensionDisposition,omitempty"`
-	LineItemRejectionDisposition     string   `json:"lineItemRejectionDisposition,omitempty"`
-	LineItemDenialDisposition        string   `json:"lineItemDenialDisposition,omitempty"`
-	ClaimRejectionReasons            []string `json:"claimRejectionReasons,omitempty"`
-	ClaimDenialReasons               []string `json:"claimDenialReasons,omitempty"`
-	ClaimReturnToProviderReasons     []string `json:"claimReturnToProviderReasons,omitempty"`
-	ClaimSuspensionReasons           []string `json:"claimSuspensionReasons,omitempty"`
-	LineItemRejectionReasons         []string `json:"lineItemRejectionReasons,omitempty"`
-	LineItemDenialReasons            []string `json:"lineItemDenialReasons,omitempty"`
+	ClaimOverallDisposition          string   `json:"claimOverallDisposition,omitempty"`          // Overall explanation of why the claim edit failed
+	ClaimRejectionDisposition        string   `json:"claimRejectionDisposition,omitempty"`        // Explanation of why the claim was rejected
+	ClaimDenialDisposition           string   `json:"claimDenialDisposition,omitempty"`           // Explanation of why the claim was denied
+	ClaimReturnToProviderDisposition string   `json:"claimReturnToProviderDisposition,omitempty"` // Explanation of why the claim should be returned to provider
+	ClaimSuspensionDisposition       string   `json:"claimSuspensionDisposition,omitempty"`       // Explanation of why the claim was suspended
+	LineItemRejectionDisposition     string   `json:"lineItemRejectionDisposition,omitempty"`     // Explanation of why the line item was rejected
+	LineItemDenialDisposition        string   `json:"lineItemDenialDisposition,omitempty"`        // Explanation of why the line item was denied
+	ClaimRejectionReasons            []string `json:"claimRejectionReasons,omitempty"`            // Detailed reason(s) describing why the claim was rejected
+	ClaimDenialReasons               []string `json:"claimDenialReasons,omitempty"`               // Detailed reason(s) describing why the claim was denied
+	ClaimReturnToProviderReasons     []string `json:"claimReturnToProviderReasons,omitempty"`     // Detailed reason(s) describing why the claim should be returned to provider
+	ClaimSuspensionReasons           []string `json:"claimSuspensionReasons,omitempty"`           // Detailed reason(s) describing why the claim was suspended
+	LineItemRejectionReasons         []string `json:"lineItemRejectionReasons,omitempty"`         // Detailed reason(s) describing why the line item was rejected
+	LineItemDenialReasons            []string `json:"lineItemDenialReasons,omitempty"`            // Detailed reason(s) describing why the line item was denied
 }
 
 // LineEdits contains errors which cause the line item to be unable to be priced.
 type LineEdits struct {
-	DenialOrRejectionText string   `json:"denialOrRejectionText,omitempty"`
-	ProcedureEdits        []string `json:"procedureEdits,omitempty"`
-	Modifier1Edits        []string `json:"modifier1Edits,omitempty"`
-	Modifier2Edits        []string `json:"modifier2Edits,omitempty"`
-	Modifier3Edits        []string `json:"modifier3Edits,omitempty"`
-	Modifier4Edits        []string `json:"modifier4Edits,omitempty"`
-	Modifier5Edits        []string `json:"modifier5Edits,omitempty"`
-	DataEdits             []string `json:"dataEdits,omitempty"`
-	RevenueEdits          []string `json:"revenueEdits,omitempty"`
-	ProfessionalEdits     []string `json:"professionalEdits,omitempty"`
+	DenialOrRejectionText string   `json:"denialOrRejectionText,omitempty"` // The overall explanation for why this line item was denied or rejected by the claim editor
+	ProcedureEdits        []string `json:"procedureEdits,omitempty"`        // Detailed description of each procedure code edit error (from outpatient editor)
+	Modifier1Edits        []string `json:"modifier1Edits,omitempty"`        // Detailed description of each edit error for the first procedure code modifier (from outpatient editor)
+	Modifier2Edits        []string `json:"modifier2Edits,omitempty"`        // Detailed description of each edit error for the second procedure code modifier (from outpatient editor)
+	Modifier3Edits        []string `json:"modifier3Edits,omitempty"`        // Detailed description of each edit error for the third procedure code modifier (from outpatient editor)
+	Modifier4Edits        []string `json:"modifier4Edits,omitempty"`        // Detailed description of each edit error for the fourth procedure code modifier (from outpatient editor)
+	Modifier5Edits        []string `json:"modifier5Edits,omitempty"`        // Detailed description of each edit error for the fifth procedure code modifier (from outpatient editor)
+	DataEdits             []string `json:"dataEdits,omitempty"`             // Detailed description of each data edit error (from outpatient editor)
+	RevenueEdits          []string `json:"revenueEdits,omitempty"`          // Detailed description of each revenue code edit error (from outpatient editor)
+	ProfessionalEdits     []string `json:"professionalEdits,omitempty"`     // Detailed description of each professional claim edit error
 }
