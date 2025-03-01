@@ -19,6 +19,7 @@ type Pricer interface {
 
 // PriceConfig is used to configure the behavior of the pricing API
 type PriceConfig struct {
+	PriceZeroBilled                     bool    // set to true to price claims with zero billed amounts (default is false)
 	IsCommercial                        bool    // set to true to use commercial code crosswalks
 	DisableCostBasedReimbursement       bool    // by default, the API will use cost-based reimbursement for MAC priced line-items. This is the best estimate we have for this proprietary pricing
 	UseCommercialSyntheticForNotAllowed bool    // set to true to use a synthetic Medicare price for line-items that are not allowed by Medicare
