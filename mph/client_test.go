@@ -86,7 +86,7 @@ func TestClient(t *testing.T) {
 	assertRequests(t, expectedRequest, doSuccess.RequestsMade[3])
 }
 
-func newRequest(method, url string, bodyStruct interface{}, headers http.Header) *http.Request {
+func newRequest(method, url string, bodyStruct any, headers http.Header) *http.Request {
 	var buf bytes.Buffer
 	json.NewEncoder(&buf).Encode(bodyStruct)
 	body := io.NopCloser(&buf)
