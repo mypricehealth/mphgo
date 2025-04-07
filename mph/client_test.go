@@ -49,6 +49,7 @@ func TestClient(t *testing.T) {
 	expectedAllOptionsHeder.Set("use-best-drg-price", "true")
 	expectedAllOptionsHeder.Set("continue-on-edit-fail", "true")
 	expectedAllOptionsHeder.Set("continue-on-provider-match-fail", "true")
+	expectedAllOptionsHeder.Set("disable-machine-learning-estimates", "true")
 
 	// Price TEST environment fail
 	expectedRequest := newRequest("POST", "https://api-test.myprice.health/v1/medicare/price/claim", Claim{}, expectedRequestHeader)
@@ -57,7 +58,7 @@ func TestClient(t *testing.T) {
 
 	// Price TEST environment fail
 	expectedRequest = newRequest("POST", "https://api-test.myprice.health/v1/medicare/price/claim", Claim{}, expectedAllOptionsHeder)
-	clientTestFail.Price(context.Background(), PriceConfig{IsCommercial: true, DisableCostBasedReimbursement: true, UseCommercialSyntheticForNotAllowed: true, UseDRGFromGrouper: true, UseBestDRGPrice: true, OverrideThreshold: 300, IncludeEdits: true, ContinueOnEditFail: true, ContinueOnProviderMatchFail: true}, Claim{})
+	clientTestFail.Price(context.Background(), PriceConfig{IsCommercial: true, DisableCostBasedReimbursement: true, UseCommercialSyntheticForNotAllowed: true, UseDRGFromGrouper: true, UseBestDRGPrice: true, OverrideThreshold: 300, IncludeEdits: true, ContinueOnEditFail: true, ContinueOnProviderMatchFail: true, DisableMachineLearningEstimates: true}, Claim{})
 	assertRequests(t, expectedRequest, doFail.RequestsMade[1])
 
 	// Price success
