@@ -9,11 +9,13 @@ import (
 )
 
 func TestNewDatePtr(t *testing.T) {
+	t.Parallel()
 	d := NewDatePtr(2001, 02, 03)
 	assert.Equal(t, &Date{Time: time.Date(2001, 02, 03, 0, 0, 0, 0, time.UTC)}, d)
 }
 
 func TestMarshalJSON(t *testing.T) {
+	t.Parallel()
 	d := NewDate(2020, 1, 1)
 	data, err := d.MarshalJSON()
 	require.NoError(t, err)
@@ -26,13 +28,14 @@ func TestMarshalJSON(t *testing.T) {
 }
 
 func TestUnmarshalJSON(t *testing.T) {
+	t.Parallel()
 	d := Date{}
 	err := d.UnmarshalJSON([]byte(`"20101106"`))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, NewDate(2010, 11, 6), d)
 
 	d = Date{}
 	err = d.UnmarshalJSON([]byte("null"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, Date{}, d)
 }
