@@ -29,6 +29,7 @@ type PriceConfig struct {
 	IncludeEdits                        bool    // set to true to include edit details in the response
 	ContinueOnEditFail                  bool    // set to true to continue to price the claim even if there are edit failures
 	ContinueOnProviderMatchFail         bool    // set to true to continue with a average provider for the geographic area if the provider cannot be matched
+	DisableMachineLearningEstimates     bool    // set to true to disable machine learning estimates (applies to estimates only)
 }
 
 // Client is used to interact with the My Price Health API
@@ -123,6 +124,9 @@ func getHeaders(config PriceConfig) http.Header {
 	}
 	if config.ContinueOnProviderMatchFail {
 		headers.Add("continue-on-provider-match-fail", "true")
+	}
+	if config.DisableMachineLearningEstimates {
+		headers.Add("disable-machine-learning-estimates", "true")
 	}
 	return headers
 }
