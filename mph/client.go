@@ -27,6 +27,9 @@ type PriceConfig struct {
 	UseBestDRGPrice                     bool    // set to true to use the best DRG price between the price on the claim and the price from the grouper
 	OverrideThreshold                   float64 // set to a value greater than 0 to allow the pricer flexibility to override NCCI edits and other overridable errors and return a price
 	IncludeEdits                        bool    // set to true to include edit details in the response
+	ContinueOnEditFail                  bool    // set to true to continue to price the claim even if there are edit failures
+	ContinueOnProviderMatchFail         bool    // set to true to continue with a average provider for the geographic area if the provider cannot be matched
+	DisableMachineLearningEstimates     bool    // set to true to disable machine learning estimates (applies to estimates only)
 }
 
 // Client is used to interact with the My Price Health API
@@ -115,6 +118,15 @@ func getHeaders(config PriceConfig) http.Header {
 	}
 	if config.UseBestDRGPrice {
 		headers.Add("use-best-drg-price", "true")
+	}
+	if config.ContinueOnEditFail {
+		headers.Add("continue-on-edit-fail", "true")
+	}
+	if config.ContinueOnProviderMatchFail {
+		headers.Add("continue-on-provider-match-fail", "true")
+	}
+	if config.DisableMachineLearningEstimates {
+		headers.Add("disable-machine-learning-estimates", "true")
 	}
 	return headers
 }

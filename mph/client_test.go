@@ -12,16 +12,19 @@ import (
 	"braces.dev/errtrace"
 	"github.com/mypricehealth/sling"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewDefaultClient(t *testing.T) {
+	t.Parallel()
 	client := NewDefaultClient("test")
 	assert.NotNil(t, client.sling)
 }
 
 func TestClient(t *testing.T) {
-	doSuccess := &fakeDoer{Response: &http.Response{StatusCode: 200, Body: io.NopCloser(strings.NewReader(""))}}
-	doFail := &fakeDoer{Response: &http.Response{StatusCode: 400, Body: io.NopCloser(strings.NewReader(""))}, Error: errtrace.Errorf("error")}
+	t.Parallel()
+	doSuccess := &fakeDoer{Response: &http.Response{StatusCode: http.StatusOK, Body: io.NopCloser(strings.NewReader(""))}}
+	doFail := &fakeDoer{Response: &http.Response{StatusCode: http.StatusBadRequest, Body: io.NopCloser(strings.NewReader(""))}, Error: errtrace.Errorf("error")}
 
 	clientSuccess := NewClient(doSuccess, false, "test")
 	assert.NotNil(t, clientSuccess.sling)
@@ -44,6 +47,9 @@ func TestClient(t *testing.T) {
 	expectedAllOptionsHeder.Set("include-edits", "true")
 	expectedAllOptionsHeder.Set("use-drg-from-grouper", "true")
 	expectedAllOptionsHeder.Set("use-best-drg-price", "true")
+	expectedAllOptionsHeder.Set("continue-on-edit-fail", "true")
+	expectedAllOptionsHeder.Set("continue-on-provider-match-fail", "true")
+	expectedAllOptionsHeder.Set("disable-machine-learning-estimates", "true")
 
 	// Price TEST environment fail
 	expectedRequest := newRequest("POST", "https://api-test.myprice.health/v1/medicare/price/claim", Claim{}, expectedRequestHeader)
@@ -52,7 +58,7 @@ func TestClient(t *testing.T) {
 
 	// Price TEST environment fail
 	expectedRequest = newRequest("POST", "https://api-test.myprice.health/v1/medicare/price/claim", Claim{}, expectedAllOptionsHeder)
-	clientTestFail.Price(context.Background(), PriceConfig{IsCommercial: true, DisableCostBasedReimbursement: true, UseCommercialSyntheticForNotAllowed: true, UseDRGFromGrouper: true, UseBestDRGPrice: true, OverrideThreshold: 300, IncludeEdits: true}, Claim{})
+	clientTestFail.Price(context.Background(), PriceConfig{IsCommercial: true, DisableCostBasedReimbursement: true, UseCommercialSyntheticForNotAllowed: true, UseDRGFromGrouper: true, UseBestDRGPrice: true, OverrideThreshold: 300, IncludeEdits: true, ContinueOnEditFail: true, ContinueOnProviderMatchFail: true, DisableMachineLearningEstimates: true}, Claim{})
 	assertRequests(t, expectedRequest, doFail.RequestsMade[1])
 
 	// Price success
@@ -88,7 +94,7 @@ func TestClient(t *testing.T) {
 
 func newRequest(method, url string, bodyStruct interface{}, headers http.Header) *http.Request {
 	var buf bytes.Buffer
-	json.NewEncoder(&buf).Encode(bodyStruct)
+	_ = json.NewEncoder(&buf).Encode(bodyStruct)
 	body := io.NopCloser(&buf)
 	req, _ := http.NewRequest(method, url, body)
 	req.Header = headers
@@ -104,9 +110,9 @@ func assertRequests(t *testing.T, expected, actual *http.Request) {
 
 func assertReaders(t *testing.T, expected, actual io.Reader) {
 	b1, err := io.ReadAll(expected)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	b2, err := io.ReadAll(actual)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, string(b1), string(b2))
 }
 
