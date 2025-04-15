@@ -9,7 +9,9 @@ import (
 )
 
 func TestResponseUnmarshalJSON(t *testing.T) {
+	t.Parallel()
 	t.Run("success", func(t *testing.T) {
+		t.Parallel()
 		var r Response[int64]
 		err := json.Unmarshal([]byte(`{"result": 123, "status": 200}`), &r)
 		require.NoError(t, err)
@@ -18,6 +20,7 @@ func TestResponseUnmarshalJSON(t *testing.T) {
 	})
 
 	t.Run("fail", func(t *testing.T) {
+		t.Parallel()
 		var r Response[int64]
 		err := json.Unmarshal([]byte(`{"error": {"title": "title", "detail": "detail"}, "status": 500}`), &r)
 		require.NoError(t, err)
@@ -27,7 +30,9 @@ func TestResponseUnmarshalJSON(t *testing.T) {
 }
 
 func TestResponsesUnmarshalJSON(t *testing.T) {
+	t.Parallel()
 	t.Run("success", func(t *testing.T) {
+		t.Parallel()
 		var r Responses[int64]
 		err := json.Unmarshal([]byte(`{"results": [1, 2, 3], "status": 200}`), &r)
 		require.NoError(t, err)
@@ -36,6 +41,7 @@ func TestResponsesUnmarshalJSON(t *testing.T) {
 	})
 
 	t.Run("fail", func(t *testing.T) {
+		t.Parallel()
 		var r Responses[int64]
 		err := json.Unmarshal([]byte(`{"error": {"title": "title", "detail": "detail"}, "status": 500}`), &r)
 		require.NoError(t, err)
