@@ -1,22 +1,56 @@
 package mph
 
+import (
+	"encoding/json"
+
+	"braces.dev/errtrace"
+)
+
 type ClaimRepricingCode string
 type LineRepricingCode string
 type HospitalType string
 type RuralIndicator string
 type MedicareSource string
 
-// claim-level repricing codes
+var _ json.Unmarshaler = new(RuralIndicator)
+
+func (r *RuralIndicator) UnmarshalJSON(data []byte) error { // old code was sending the int value of the Rural indicator, so this handles both
+	var strData string
+	err := json.Unmarshal(data, &strData)
+	if err == nil && (strData == "R" || strData == "B" || strData == "") {
+		*r = RuralIndicator(strData)
+		return nil
+	}
+
+	var intData int
+	err = json.Unmarshal(data, &intData)
+	if err == nil {
+		switch intData {
+		case 66:
+			*r = RuralIndicator("B")
+			return nil
+		case 82:
+			*r = RuralIndicator("R")
+			return nil
+		case 0:
+			*r = RuralIndicator("")
+			return nil
+		}
+	}
+	return errtrace.Errorf("invalid RuralIndicator value: %s", strData)
+}
+
 const (
+	// claim-level repricing codes.
+
 	ClaimRepricingCodeMedicare            ClaimRepricingCode = "MED"
 	ClaimRepricingCodeContractPricing     ClaimRepricingCode = "CON"
 	ClaimRepricingCodeRBPPricing          ClaimRepricingCode = "RBP"
 	ClaimRepricingCodeSingleCaseAgreement ClaimRepricingCode = "SCA"
 	ClaimRepricingCodeNeedsMoreInfo       ClaimRepricingCode = "IFO"
-)
 
-// line-level Medicare repricing codes
-const (
+	// line-level Medicare repricing codes.
+
 	LineRepricingCodeMedicare          LineRepricingCode = "MED"
 	LineRepricingCodeMedicarePercent   LineRepricingCode = "MPT"
 	LineRepricingCodeMedicareNoOutlier LineRepricingCode = "MNO"
@@ -28,17 +62,17 @@ const (
 	LineRepricingCodeCostPercent       LineRepricingCode = "CST"
 	LineRepricingCodeLimitedToBilled   LineRepricingCode = "LTB"
 
-	// line-level zero dollar repricing explanations
+	// line-level zero dollar repricing explanations.
 
 	LineRepricingCodeNotRepricedPerRequest LineRepricingCode = "NRP"
 	LineRepricingCodeNotAllowedByMedicare  LineRepricingCode = "NAM"
 	LineRepricingCodePackaged              LineRepricingCode = "PKG"
 	LineRepricingCodeNeedsMoreInfo         LineRepricingCode = "IFO"
 	LineRepricingCodeProcedureCodeProblem  LineRepricingCode = "CPB"
-)
+	LineRepricingCodeOutOfNetwork          LineRepricingCode = "OON"
 
-// Hospital types
-const (
+	// Hospital types.
+
 	AcuteCareHospitalType      HospitalType = "Acute Care Hospitals"
 	CriticalAccessHospitalType HospitalType = "Critical Access Hospitals"
 	ChildrensHospitalType      HospitalType = "Childrens"
@@ -47,7 +81,7 @@ const (
 )
 
 const (
-	// Rural indicators
+	// Rural indicators.
 	RuralIndicatorRural      RuralIndicator = "R"
 	RuralIndicatorSuperRural RuralIndicator = "B"
 	RuralIndicatorUrban      RuralIndicator = ""
@@ -82,9 +116,10 @@ type Pricing struct {
 	AllowedAmount         float64                `json:"allowedAmount,omitempty"`         // The allowed amount based on a contract or RBP pricing
 	MedicareRepricingCode ClaimRepricingCode     `json:"medicareRepricingCode,omitempty"` // Explains the methodology used to calculate Medicare (MED or IFO)
 	MedicareRepricingNote string                 `json:"medicareRepricingNote,omitempty"` // Note explaining approach for pricing or reason for error
+	NetworkCode           string                 `json:"networkCode,omitempty"`           // The network code used for pricing (is placed into HCP04)
 	AllowedRepricingCode  ClaimRepricingCode     `json:"allowedRepricingCode,omitempty"`  // Explains the methodology used to calculate allowed amount (CON, RBP, SCA, or IFO)
 	AllowedRepricingNote  string                 `json:"allowedRepricingNote,omitempty"`  // Note explaining approach for pricing or reason for error
-	MedicareStdDev        float64                `json:"medicareStdDev,omitempty"`        // The standard deviation of the estimated Medicare amount (estimates service only)
+	MedicareStdDev        float64                `json:"medicareStdDev,omitempty"`        // Standard deviation of the estimated Medicare amount (estimates service only)
 	MedicareSource        MedicareSource         `json:"medicareSource,omitempty"`        // Source of the Medicare amount (e.g. physician fee schedule, OPPS, etc.)
 	InpatientPriceDetail  *InpatientPriceDetail  `json:"inpatientPriceDetail,omitempty"`  // Details about the inpatient pricing
 	OutpatientPriceDetail *OutpatientPriceDetail `json:"outpatientPriceDetail,omitempty"` // Details about the outpatient pricing
@@ -95,28 +130,39 @@ type Pricing struct {
 	EditError             *ResponseError         `json:"error,omitempty"`                 // An error that occurred during some step of the pricing process
 }
 
-// PricedService contains the results of a pricing request for a single service line
+// PricedService contains the results of a pricing request for a single service line.
 type PricedService struct {
-	LineNumber                  string            `json:"lineNumber,omitempty"`            // Number of the service line item (copied from input)
-	ProviderDetail              *ProviderDetail   `json:"providerDetail,omitempty"`        // Provider Details used when pricing the service if different than the claim
-	MedicareAmount              float64           `json:"medicareAmount,omitempty"`        // Amount Medicare would pay for the service
-	AllowedAmount               float64           `json:"allowedAmount,omitempty"`         // Allowed amount based on a contract or RBP pricing
-	MedicareRepricingCode       LineRepricingCode `json:"medicareRepricingCode,omitempty"` // Explains the methodology used to calculate Medicare
-	MedicareRepricingNote       string            `json:"medicareRepricingNote,omitempty"` // Note explaining approach for pricing or reason for error
-	AllowedRepricingCode        LineRepricingCode `json:"allowedRepricingCode,omitempty"`  // Explains the methodology used to calculate allowed amount
-	AllowedRepricingNote        string            `json:"allowedRepricingNote,omitempty"`  // Note explaining approach for pricing or reason for error
-	TechnicalComponentAmount    float64           `json:"tcAmount,omitempty"`              // Amount Medicare would pay for the technical component
-	ProfessionalComponentAmount float64           `json:"pcAmount,omitempty"`              // Amount Medicare would pay for the professional component
-	MedicareStdDev              float64           `json:"medicareStdDev,omitempty"`        // Standard deviation of the estimated Medicare amount (estimates service only)
-	MedicareSource              MedicareSource    `json:"medicareSource,omitempty"`        // Source of the Medicare amount (e.g. physician fee schedule, OPPS, etc.)
-	PricerResult                string            `json:"pricerResult,omitempty"`          // Pricing service return details
-	StatusIndicator             string            `json:"statusIndicator,omitempty"`       // Code which gives more detail about how Medicare pays for the service
-	PaymentIndicator            string            `json:"paymentIndicator,omitempty"`      // Text which explains the type of payment for Medicare
-	PaymentAPC                  string            `json:"paymentAPC,omitempty"`            // Ambulatory Payment Classification
-	EditDetail                  *LineEdits        `json:"editDetail,omitempty"`            // Errors which cause the line item to be unable to be priced
+	LineNumber                  string                  `json:"lineNumber,omitempty"`             // Number of the service line item (copied from input)
+	ProviderDetail              *ProviderDetail         `json:"providerDetail,omitempty"`         // Provider Details used when pricing the service if different than the claim
+	MedicareAmount              float64                 `json:"medicareAmount,omitempty"`         // Amount Medicare would pay for the service
+	AllowedAmount               float64                 `json:"allowedAmount,omitempty"`          // Allowed amount based on a contract or RBP pricing
+	MedicareRepricingCode       LineRepricingCode       `json:"medicareRepricingCode,omitempty"`  // Explains the methodology used to calculate Medicare
+	MedicareRepricingNote       string                  `json:"medicareRepricingNote,omitempty"`  // Note explaining approach for pricing or reason for error
+	NetworkCode                 string                  `json:"networkCode,omitempty"`            // The network code used for pricing (is placed into HCP04)
+	AllowedRepricingCode        LineRepricingCode       `json:"allowedRepricingCode,omitempty"`   // Explains the methodology used to calculate allowed amount
+	AllowedRepricingNote        string                  `json:"allowedRepricingNote,omitempty"`   // Note explaining approach for pricing or reason for error
+	AllowedRepricingFormula     AllowedRepricingFormula `json:"allowedRepricingFormula,omitzero"` // Formula used to calculate the allowed amount
+	TechnicalComponentAmount    float64                 `json:"tcAmount,omitempty"`               // Amount Medicare would pay for the technical component
+	ProfessionalComponentAmount float64                 `json:"pcAmount,omitempty"`               // Amount Medicare would pay for the professional component
+	MedicareStdDev              float64                 `json:"medicareStdDev,omitempty"`         // Standard deviation of the estimated Medicare amount (estimates service only)
+	MedicareSource              MedicareSource          `json:"medicareSource,omitempty"`         // Source of the Medicare amount (e.g. physician fee schedule, OPPS, etc.)
+	PricerResult                string                  `json:"pricerResult,omitempty"`           // Pricing service return details
+	StatusIndicator             string                  `json:"statusIndicator,omitempty"`        // (outpatient + professional) Code which gives more detail about how Medicare pays for the service
+	PaymentIndicator            string                  `json:"paymentIndicator,omitempty"`       // (outpatient only) Text which explains the type of payment for Medicare
+	DiscountFormula             string                  `json:"discountFormula,omitempty"`        // (outpatient only) The multi-procedure discount formula used to calculate the allowed amount
+	PackagingFlag               string                  `json:"packagingFlag,omitempty"`          // (outpatient only) Indicates if the service is packaged and the reason for packaging
+	PaymentMethod               string                  `json:"paymentMethod,omitempty"`          // (outpatient only) The method used to calculate the allowed amount
+	PaymentAPC                  string                  `json:"paymentAPC,omitempty"`             // (outpatient only) Ambulatory Payment Classification code used for payment
+	EditDetail                  *LineEdits              `json:"editDetail,omitempty"`             // Errors which cause the line item to be unable to be priced
 }
 
-// InpatientPriceDetail contains pricing details for an inpatient claim
+type AllowedRepricingFormula struct {
+	MedicarePercent float64 `json:"medicarePercent,omitempty"` // Percentage of the Medicare amount used to calculate the allowed amount
+	BilledPercent   float64 `json:"billedPercent,omitempty"`   // Percentage of the billed amount used to calculate the allowed amount
+	FixedAmount     float64 `json:"fixedAmount,omitempty"`     // Fixed amount used as the allowed amount
+}
+
+// InpatientPriceDetail contains pricing details for an inpatient claim.
 type InpatientPriceDetail struct {
 	DRG                            string  `json:"drg,omitempty"`                            // Diagnosis Related Group (DRG) code used to price the claim
 	DRGAmount                      float64 `json:"drgAmount,omitempty"`                      // Amount Medicare would pay for the DRG
@@ -130,7 +176,7 @@ type InpatientPriceDetail struct {
 	WageIndex                      float64 `json:"wageIndex,omitempty"`                      // Wage index used for geographic adjustment
 }
 
-// OutpatientPriceDetail contains pricing details for an outpatient claim
+// OutpatientPriceDetail contains pricing details for an outpatient claim.
 type OutpatientPriceDetail struct {
 	OutlierAmount                         float64 `json:"outlierAmount,omitempty"`                         // Additional amount paid for high cost cases
 	FirstPassthroughDrugOffsetAmount      float64 `json:"firstPassthroughDrugOffsetAmount,omitempty"`      // Amount built into the APC payment for certain drugs
@@ -150,6 +196,8 @@ type ProviderDetail struct {
 	CCN            string         `json:"ccn,omitempty"`            // CMS Certification Number for the facility
 	MAC            uint16         `json:"mac"`                      // Medicare Administrative Contractor number
 	Locality       uint8          `json:"locality"`                 // Geographic locality number used for pricing
+	GeographicCBSA uint32         `json:"geographicCBSA,omitempty"` // Core-Based Statistical Area (CBSA) number for provider ZIP
+	StateCBSA      uint8          `json:"stateCBSA,omitempty"`      // State Core-Based Statistical Area (CBSA) number
 	RuralIndicator RuralIndicator `json:"ruralIndicator,omitempty"` // Indicates whether provider is Rural (R), Super Rural (B), or Urban (blank)
 	SpecialtyType  string         `json:"specialtyType,omitempty"`  // Medicare provider specialty type
 	HospitalType   HospitalType   `json:"hospitalType,omitempty"`   // Type of hospital
@@ -157,6 +205,7 @@ type ProviderDetail struct {
 
 // ClaimEdits contains errors which cause the claim to be denied, rejected, suspended, or returned to the provider.
 type ClaimEdits struct {
+	HCP13DenyCode                    string   `json:"hcpDenyCode,omitempty"`                      // The deny code that will be placed into the HCP13 data element for EDI 837 claims
 	ClaimOverallDisposition          string   `json:"claimOverallDisposition,omitempty"`          // Overall explanation of why the claim edit failed
 	ClaimRejectionDisposition        string   `json:"claimRejectionDisposition,omitempty"`        // Explanation of why the claim was rejected
 	ClaimDenialDisposition           string   `json:"claimDenialDisposition,omitempty"`           // Explanation of why the claim was denied
@@ -183,5 +232,4 @@ type LineEdits struct {
 	Modifier5Edits        []string `json:"modifier5Edits,omitempty"`        // Detailed description of each edit error for the fifth procedure code modifier (from outpatient editor)
 	DataEdits             []string `json:"dataEdits,omitempty"`             // Detailed description of each data edit error (from outpatient editor)
 	RevenueEdits          []string `json:"revenueEdits,omitempty"`          // Detailed description of each revenue code edit error (from outpatient editor)
-	ProfessionalEdits     []string `json:"professionalEdits,omitempty"`     // Detailed description of each professional claim edit error
 }
