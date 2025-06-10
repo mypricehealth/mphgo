@@ -137,6 +137,9 @@ func GetHeaders(config PriceConfig) http.Header {
 	if config.FallbackToMaxAnesthesiaUnitsPerDay {
 		headers.Add("fallback-to-max-anesthesia-units-per-day", "true")
 	}
+	if config.DisableMachineLearningEstimates {
+		headers.Add("disable-machine-learning-estimates", "true")
+	}
 	return headers
 }
 
