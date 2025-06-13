@@ -90,6 +90,7 @@ const (
 const (
 	MedicareSourceAmbulance              MedicareSource = "AmbulanceFS"
 	MedicareSourceAnesthesia             MedicareSource = "AnesthesiaFS"
+	MedicareSourceASC                    MedicareSource = "ASC pricer"
 	MedicareSourceCriticalAccessHospital MedicareSource = "CAH pricer"
 	MedicareSourceDrugs                  MedicareSource = "DrugsFS"
 	MedicareSourceEditError              MedicareSource = "Claim editor"
