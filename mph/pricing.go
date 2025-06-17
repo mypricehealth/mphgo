@@ -46,6 +46,7 @@ const (
 	ClaimRepricingCodeMedicare            ClaimRepricingCode = "MED"
 	ClaimRepricingCodeContractPricing     ClaimRepricingCode = "CON"
 	ClaimRepricingCodeRBPPricing          ClaimRepricingCode = "RBP"
+	ClaimRepricingCodeCoralRBPPricing     ClaimRepricingCode = "CRBP"
 	ClaimRepricingCodeSingleCaseAgreement ClaimRepricingCode = "SCA"
 	ClaimRepricingCodeNeedsMoreInfo       ClaimRepricingCode = "IFO"
 
