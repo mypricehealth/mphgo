@@ -33,6 +33,7 @@ type PriceConfig struct {
 	DisableMachineLearningEstimates           bool    // set to true to disable machine learning estimates (applies to estimates only)
 	AssumeImpossibleAnesthesiaUnitsAreMinutes bool    // set to true to divide impossible anesthesia units by 15 (max of 96 anesthesia units per day) (default is false)
 	FallbackToMaxAnesthesiaUnitsPerDay        bool    // set to true to fallback to the maximum anesthesia units per day (default is false which will error if there are more than 96 anesthesia units per day)
+	AllowPartialResults                       bool    // set to true to return partially repriced claims. This can be useful to get pricing on non-erroring line items, but should be used with caution
 }
 
 // Client is used to interact with the My Price Health API.
@@ -140,6 +141,9 @@ func GetHeaders(config PriceConfig) http.Header {
 	if config.DisableMachineLearningEstimates {
 		headers.Add("disable-machine-learning-estimates", "true")
 	}
+	if config.AllowPartialResults {
+		headers.Add("allow-partial-results", "true")
+	}
 	return headers
 }
 
@@ -158,6 +162,7 @@ func ParseHeaders(r *http.Request) (PriceConfig, error) {
 		ContinueOnProviderMatchFail:               r.Header.Get("continue-on-provider-match-fail") == "true",
 		AssumeImpossibleAnesthesiaUnitsAreMinutes: r.Header.Get("assume-impossible-anesthesia-units-are-minutes") == "true",
 		FallbackToMaxAnesthesiaUnitsPerDay:        r.Header.Get("fallback-to-max-anesthesia-units-per-day") == "true",
+		AllowPartialResults:                       r.Header.Get("allow-partial-results") == "true",
 	}
 	if config.UseDRGFromGrouper && config.UseBestDRGPrice {
 		return PriceConfig{}, errtrace.Errorf("use-drg-from-grouper and use-best-drg-price are mutually exclusive")
