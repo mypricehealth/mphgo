@@ -178,8 +178,7 @@ type InpatientPriceDetail struct {
 }
 
 func (i InpatientPriceDetail) IsEmpty() bool {
-	return i.DRG == "" && i.DRGAmount == 0 && i.PassthroughAmount == 0 && i.OutlierAmount == 0 && i.IndirectMedicalEducationAmount == 0 && i.DisproportionateShareAmount == 0 &&
-		i.UncompensatedCareAmount == 0 && i.ReadmissionAdjustmentAmount == 0 && i.ValueBasedPurchasingAmount == 0 && i.WageIndex == 0
+	return i == InpatientPriceDetail{}
 }
 
 // OutpatientPriceDetail contains pricing details for an outpatient claim.
@@ -196,9 +195,7 @@ type OutpatientPriceDetail struct {
 }
 
 func (o OutpatientPriceDetail) IsEmpty() bool {
-	return o.OutlierAmount == 0 && o.FirstPassthroughDrugOffsetAmount == 0 && o.SecondPassthroughDrugOffsetAmount == 0 &&
-		o.ThirdPassthroughDrugOffsetAmount == 0 && o.FirstDeviceOffsetAmount == 0 && o.SecondDeviceOffsetAmount == 0 &&
-		o.FullOrPartialDeviceCreditOffsetAmount == 0 && o.TerminatedDeviceProcedureOffsetAmount == 0 && o.WageIndex == 0
+	return o == OutpatientPriceDetail{}
 }
 
 // ProviderDetail contains basic information about the provider and/or locality used for pricing
@@ -216,8 +213,7 @@ type ProviderDetail struct {
 }
 
 func (p ProviderDetail) IsEmpty() bool {
-	return p.CCN == "" && p.MAC == 0 && p.Locality == 0 && p.GeographicCBSA == 0 && p.StateCBSA == 0 &&
-		p.RuralIndicator == "" && p.SpecialtyType == "" && p.HospitalType == ""
+	return p == ProviderDetail{}
 }
 
 // ClaimEdits contains errors which cause the claim to be denied, rejected, suspended, or returned to the provider.
