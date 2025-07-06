@@ -20,20 +20,20 @@ type Pricer interface {
 
 // PriceConfig is used to configure the behavior of the pricing API.
 type PriceConfig struct {
-	PriceZeroBilled                           bool    `json:"priceZeroBilled,omitempty"`                           // set to true to price claims with zero billed amounts (default is false)
-	IsCommercial                              bool    `json:"isCommercial,omitempty"`                              // set to true to use commercial code crosswalks
-	DisableCostBasedReimbursement             bool    `json:"disableCostBasedReimbursement,omitempty"`             // by default, the API will use cost-based reimbursement for MAC priced line-items. This is the best estimate we have for this proprietary pricing
-	UseCommercialSyntheticForNotAllowed       bool    `json:"useCommercialSyntheticForNotAllowed,omitempty"`       // set to true to use a synthetic Medicare price for line-items that are not allowed by Medicare
-	UseDRGFromGrouper                         bool    `json:"useDRGFromGrouper,omitempty"`                         // set to true to always use the DRG from the inpatient grouper
-	UseBestDRGPrice                           bool    `json:"useBestDRGPrice,omitempty"`                           // set to true to use the best DRG price between the price on the claim and the price from the grouper
-	OverrideThreshold                         float64 `json:"overrideThreshold,omitempty"`                         // set to a value greater than 0 to allow the pricer flexibility to override NCCI edits and other overridable errors and return a price
-	IncludeEdits                              bool    `json:"includeEdits,omitempty"`                              // set to true to include edit details in the response
-	ContinueOnEditFail                        bool    `json:"continueOnEditFail,omitempty"`                        // set to true to continue to price the claim even if there are edit failures
-	ContinueOnProviderMatchFail               bool    `json:"continueOnProviderMatchFail,omitempty"`               // set to true to continue with a average provider for the geographic area if the provider cannot be matched
-	DisableMachineLearningEstimates           bool    `json:"disableMachineLearningEstimates,omitempty"`           // set to true to disable machine learning estimates (applies to estimates only)
-	AssumeImpossibleAnesthesiaUnitsAreMinutes bool    `json:"assumeImpossibleAnesthesiaUnitsAreMinutes,omitempty"` // set to true to divide impossible anesthesia units by 15 (max of 96 anesthesia units per day) (default is false)
-	FallbackToMaxAnesthesiaUnitsPerDay        bool    `json:"fallbackToMaxAnesthesiaUnitsPerDay,omitempty"`        // set to true to fallback to the maximum anesthesia units per day (default is false which will error if there are more than 96 anesthesia units per day)
-	AllowPartialResults                       bool    `json:"allowPartialResults,omitempty"`                       // set to true to return partially repriced claims. This can be useful to get pricing on non-erroring line items, but should be used with caution
+	PriceZeroBilled                           bool    `json:"priceZeroBilled,omitzero"`                           // set to true to price claims with zero billed amounts (default is false)
+	IsCommercial                              bool    `json:"isCommercial,omitzero"`                              // set to true to use commercial code crosswalks
+	DisableCostBasedReimbursement             bool    `json:"disableCostBasedReimbursement,omitzero"`             // by default, the API will use cost-based reimbursement for MAC priced line-items. This is the best estimate we have for this proprietary pricing
+	UseCommercialSyntheticForNotAllowed       bool    `json:"useCommercialSyntheticForNotAllowed,omitzero"`       // set to true to use a synthetic Medicare price for line-items that are not allowed by Medicare
+	UseDRGFromGrouper                         bool    `json:"useDRGFromGrouper,omitzero"`                         // set to true to always use the DRG from the inpatient grouper
+	UseBestDRGPrice                           bool    `json:"useBestDRGPrice,omitzero"`                           // set to true to use the best DRG price between the price on the claim and the price from the grouper
+	OverrideThreshold                         float64 `json:"overrideThreshold,omitzero"`                         // set to a value greater than 0 to allow the pricer flexibility to override NCCI edits and other overridable errors and return a price
+	IncludeEdits                              bool    `json:"includeEdits,omitzero"`                              // set to true to include edit details in the response
+	ContinueOnEditFail                        bool    `json:"continueOnEditFail,omitzero"`                        // set to true to continue to price the claim even if there are edit failures
+	ContinueOnProviderMatchFail               bool    `json:"continueOnProviderMatchFail,omitzero"`               // set to true to continue with a average provider for the geographic area if the provider cannot be matched
+	DisableMachineLearningEstimates           bool    `json:"disableMachineLearningEstimates,omitzero"`           // set to true to disable machine learning estimates (applies to estimates only)
+	AssumeImpossibleAnesthesiaUnitsAreMinutes bool    `json:"assumeImpossibleAnesthesiaUnitsAreMinutes,omitzero"` // set to true to divide impossible anesthesia units by 15 (max of 96 anesthesia units per day) (default is false)
+	FallbackToMaxAnesthesiaUnitsPerDay        bool    `json:"fallbackToMaxAnesthesiaUnitsPerDay,omitzero"`        // set to true to fallback to the maximum anesthesia units per day (default is false which will error if there are more than 96 anesthesia units per day)
+	AllowPartialResults                       bool    `json:"allowPartialResults,omitzero"`                       // set to true to return partially repriced claims. This can be useful to get pricing on non-erroring line items, but should be used with caution
 }
 
 // Client is used to interact with the My Price Health API.
