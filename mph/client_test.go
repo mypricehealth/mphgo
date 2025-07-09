@@ -128,3 +128,52 @@ func (f *fakeDoer) Do(req *http.Request) (*http.Response, error) {
 }
 
 var _ sling.Doer = &fakeDoer{}
+
+func TestGetHeaders(t *testing.T) {
+	t.Parallel()
+	input := PriceConfig{
+		PriceZeroBilled:                     true,
+		IsCommercial:                        true,
+		DisableCostBasedReimbursement:       true,
+		UseCommercialSyntheticForNotAllowed: true,
+		OverrideThreshold:                   4,
+		IncludeEdits:                        true,
+		UseDRGFromGrouper:                   true,
+		ContinueOnEditFail:                  true,
+		ContinueOnProviderMatchFail:         true,
+	}
+	assert.Equal(t, fakeHeader(), GetHeaders(input))
+}
+
+func fakeHeader() http.Header {
+	h := http.Header{}
+	h.Add("price-zero-billed", "true")
+	h.Add("is-commercial", "true")
+	h.Add("disable-cost-based-reimbursement", "true")
+	h.Add("use-commercial-synthetic-for-not-allowed", "true")
+	h.Add("override-threshold", "4")
+	h.Add("include-edits", "true")
+	h.Add("use-drg-from-grouper", "true")
+	h.Add("continue-on-edit-fail", "true")
+	h.Add("continue-on-provider-match-fail", "true")
+	return h
+}
+
+func TestParseHeaders(t *testing.T) {
+	t.Parallel()
+	input := &http.Request{Header: fakeHeader()}
+	expected := PriceConfig{
+		PriceZeroBilled:                     true,
+		IsCommercial:                        true,
+		DisableCostBasedReimbursement:       true,
+		UseCommercialSyntheticForNotAllowed: true,
+		OverrideThreshold:                   4,
+		IncludeEdits:                        true,
+		UseDRGFromGrouper:                   true,
+		ContinueOnEditFail:                  true,
+		ContinueOnProviderMatchFail:         true,
+	}
+	config, err := ParseHeaders(input)
+	require.NoError(t, err)
+	assert.Equal(t, expected, config)
+}
