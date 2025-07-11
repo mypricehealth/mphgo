@@ -37,19 +37,24 @@ func TestClient(t *testing.T) {
 	expectedRequestHeader.Set("Content-Type", "application/json")
 	expectedRequestHeader.Set("x-api-key", "test")
 
-	expectedAllOptionsHeder := http.Header{}
-	expectedAllOptionsHeder.Set("Content-Type", "application/json")
-	expectedAllOptionsHeder.Set("x-api-key", "test")
-	expectedAllOptionsHeder.Set("is-commercial", "true")
-	expectedAllOptionsHeder.Set("disable-cost-based-reimbursement", "true")
-	expectedAllOptionsHeder.Set("use-commercial-synthetic-for-not-allowed", "true")
-	expectedAllOptionsHeder.Set("override-threshold", "300")
-	expectedAllOptionsHeder.Set("include-edits", "true")
-	expectedAllOptionsHeder.Set("use-drg-from-grouper", "true")
-	expectedAllOptionsHeder.Set("use-best-drg-price", "true")
-	expectedAllOptionsHeder.Set("continue-on-edit-fail", "true")
-	expectedAllOptionsHeder.Set("continue-on-provider-match-fail", "true")
-	expectedAllOptionsHeder.Set("disable-machine-learning-estimates", "true")
+	expectedAllOptionsHeader := http.Header{}
+	expectedAllOptionsHeader.Set("Content-Type", "application/json")
+	expectedAllOptionsHeader.Set("x-api-key", "test")
+	expectedAllOptionsHeader.Set("contract-ruleset", "abcd")
+	expectedAllOptionsHeader.Set("price-zero-billed", "true")
+	expectedAllOptionsHeader.Set("is-commercial", "true")
+	expectedAllOptionsHeader.Set("disable-cost-based-reimbursement", "true")
+	expectedAllOptionsHeader.Set("use-commercial-synthetic-for-not-allowed", "true")
+	expectedAllOptionsHeader.Set("use-drg-from-grouper", "true")
+	expectedAllOptionsHeader.Set("use-best-drg-price", "true")
+	expectedAllOptionsHeader.Set("override-threshold", "300")
+	expectedAllOptionsHeader.Set("include-edits", "true")
+	expectedAllOptionsHeader.Set("continue-on-edit-fail", "true")
+	expectedAllOptionsHeader.Set("continue-on-provider-match-fail", "true")
+	expectedAllOptionsHeader.Set("disable-machine-learning-estimates", "true")
+	expectedAllOptionsHeader.Set("assume-impossible-anesthesia-units-are-minutes", "true")
+	expectedAllOptionsHeader.Set("fallback-to-max-anesthesia-units-per-day", "true")
+	expectedAllOptionsHeader.Set("allow-partial-results", "true")
 
 	// Price TEST environment fail
 	expectedRequest := newRequest("POST", "https://api-test.myprice.health/v1/medicare/price/claim", Claim{}, expectedRequestHeader)
@@ -57,8 +62,24 @@ func TestClient(t *testing.T) {
 	assertRequests(t, expectedRequest, doFail.RequestsMade[0])
 
 	// Price TEST environment fail
-	expectedRequest = newRequest("POST", "https://api-test.myprice.health/v1/medicare/price/claim", Claim{}, expectedAllOptionsHeder)
-	clientTestFail.Price(context.Background(), PriceConfig{IsCommercial: true, DisableCostBasedReimbursement: true, UseCommercialSyntheticForNotAllowed: true, UseDRGFromGrouper: true, UseBestDRGPrice: true, OverrideThreshold: 300, IncludeEdits: true, ContinueOnEditFail: true, ContinueOnProviderMatchFail: true, DisableMachineLearningEstimates: true}, Claim{})
+	expectedRequest = newRequest("POST", "https://api-test.myprice.health/v1/medicare/price/claim", Claim{}, expectedAllOptionsHeader)
+	clientTestFail.Price(context.Background(), PriceConfig{
+		ContractRuleset:                           "abcd",
+		PriceZeroBilled:                           true,
+		IsCommercial:                              true,
+		DisableCostBasedReimbursement:             true,
+		UseCommercialSyntheticForNotAllowed:       true,
+		UseDRGFromGrouper:                         true,
+		UseBestDRGPrice:                           true,
+		OverrideThreshold:                         300,
+		IncludeEdits:                              true,
+		ContinueOnEditFail:                        true,
+		ContinueOnProviderMatchFail:               true,
+		DisableMachineLearningEstimates:           true,
+		AssumeImpossibleAnesthesiaUnitsAreMinutes: true,
+		FallbackToMaxAnesthesiaUnitsPerDay:        true,
+		AllowPartialResults:                       true,
+	}, Claim{})
 	assertRequests(t, expectedRequest, doFail.RequestsMade[1])
 
 	// Price success
