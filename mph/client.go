@@ -20,6 +20,7 @@ type Pricer interface {
 
 // PriceConfig is used to configure the behavior of the pricing API.
 type PriceConfig struct {
+	ContractRuleset                           string  `json:"contractRuleset,omitzero"`                           // set to the name of the ruleset to use for contract pricing
 	PriceZeroBilled                           bool    `json:"priceZeroBilled,omitzero"`                           // set to true to price claims with zero billed amounts (default is false)
 	IsCommercial                              bool    `json:"isCommercial,omitzero"`                              // set to true to use commercial code crosswalks
 	DisableCostBasedReimbursement             bool    `json:"disableCostBasedReimbursement,omitzero"`             // by default, the API will use cost-based reimbursement for MAC priced line-items. This is the best estimate we have for this proprietary pricing
@@ -144,6 +145,9 @@ func GetHeaders(config PriceConfig) http.Header {
 	if config.AllowPartialResults {
 		headers.Add("allow-partial-results", "true")
 	}
+	if config.ContractRuleset != "" {
+		headers.Add("contract-ruleset", config.ContractRuleset)
+	}
 	return headers
 }
 
@@ -163,6 +167,7 @@ func ParseHeaders(r *http.Request) (PriceConfig, error) {
 		AssumeImpossibleAnesthesiaUnitsAreMinutes: r.Header.Get("assume-impossible-anesthesia-units-are-minutes") == "true",
 		FallbackToMaxAnesthesiaUnitsPerDay:        r.Header.Get("fallback-to-max-anesthesia-units-per-day") == "true",
 		AllowPartialResults:                       r.Header.Get("allow-partial-results") == "true",
+		ContractRuleset:                           r.Header.Get("contract-ruleset"),
 	}
 	if config.UseDRGFromGrouper && config.UseBestDRGPrice {
 		return PriceConfig{}, errtrace.Errorf("use-drg-from-grouper and use-best-drg-price are mutually exclusive")
