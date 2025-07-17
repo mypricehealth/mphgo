@@ -258,8 +258,8 @@ type ClaimEdits struct {
 	LineItemDenialReasons            []string `json:"lineItemDenialReasons,omitempty"            db:"line_item_edit_denial_reasons"`             // Detailed reason(s) describing why the line item was denied
 }
 
-func (e ClaimEdits) IsEmpty() bool {
-	return e.HCP13DenyCode == "" && e.ClaimOverallDisposition == "" && e.ClaimRejectionDisposition == "" && e.ClaimDenialDisposition == "" &&
+func (e *ClaimEdits) IsEmpty() bool {
+	return e == nil || e.HCP13DenyCode == "" && e.ClaimOverallDisposition == "" && e.ClaimRejectionDisposition == "" && e.ClaimDenialDisposition == "" &&
 		e.ClaimReturnToProviderDisposition == "" && e.ClaimSuspensionDisposition == "" && e.LineItemRejectionDisposition == "" && e.LineItemDenialDisposition == "" &&
 		len(e.ClaimRejectionReasons) == 0 && len(e.ClaimDenialReasons) == 0 && len(e.ClaimReturnToProviderReasons) == 0 && len(e.ClaimSuspensionReasons) == 0 &&
 		len(e.LineItemRejectionReasons) == 0 && len(e.LineItemDenialReasons) == 0
@@ -287,10 +287,7 @@ type LineEdits struct {
 }
 
 func (e *LineEdits) IsEmpty() bool {
-	if e == nil {
-		return true
-	}
-	return len(e.ProcedureEdits) == 0 && len(e.Modifier1Edits) == 0 && len(e.Modifier2Edits) == 0 &&
+	return e == nil || len(e.ProcedureEdits) == 0 && len(e.Modifier1Edits) == 0 && len(e.Modifier2Edits) == 0 &&
 		len(e.Modifier3Edits) == 0 && len(e.Modifier4Edits) == 0 && len(e.Modifier5Edits) == 0 &&
 		len(e.DataEdits) == 0 && len(e.RevenueEdits) == 0
 }
