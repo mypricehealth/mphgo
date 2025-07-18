@@ -2,8 +2,10 @@ package mph
 
 import (
 	"encoding/json"
+	"strings"
 
 	"braces.dev/errtrace"
+	"github.com/mypricehealth/mphgo/set"
 )
 
 type ClaimRepricingCode string
@@ -134,34 +136,55 @@ type Pricing struct {
 
 // PricedService contains the results of a pricing request for a single service line.
 type PricedService struct {
-	LineNumber                  string                  `json:"lineNumber,omitempty"`             // Number of the service line item (copied from input)
-	ProviderDetail              *ProviderDetail         `json:"providerDetail,omitempty"`         // Provider Details used when pricing the service if different than the claim
-	MedicareAmount              float64                 `json:"medicareAmount,omitempty"`         // Amount Medicare would pay for the service
-	AllowedAmount               float64                 `json:"allowedAmount,omitempty"`          // Allowed amount based on a contract or RBP pricing
-	MedicareRepricingCode       LineRepricingCode       `json:"medicareRepricingCode,omitempty"`  // Explains the methodology used to calculate Medicare
-	MedicareRepricingNote       string                  `json:"medicareRepricingNote,omitempty"`  // Note explaining approach for pricing or reason for error
-	NetworkCode                 string                  `json:"networkCode,omitempty"`            // The network code used for pricing (is placed into HCP04)
-	AllowedRepricingCode        LineRepricingCode       `json:"allowedRepricingCode,omitempty"`   // Explains the methodology used to calculate allowed amount
-	AllowedRepricingNote        string                  `json:"allowedRepricingNote,omitempty"`   // Note explaining approach for pricing or reason for error
-	AllowedRepricingFormula     AllowedRepricingFormula `json:"allowedRepricingFormula,omitzero"` // Formula used to calculate the allowed amount
-	TechnicalComponentAmount    float64                 `json:"tcAmount,omitempty"`               // Amount Medicare would pay for the technical component
-	ProfessionalComponentAmount float64                 `json:"pcAmount,omitempty"`               // Amount Medicare would pay for the professional component
-	MedicareStdDev              float64                 `json:"medicareStdDev,omitempty"`         // Standard deviation of the estimated Medicare amount (estimates service only)
-	MedicareSource              MedicareSource          `json:"medicareSource,omitempty"`         // Source of the Medicare amount (e.g. physician fee schedule, OPPS, etc.)
-	PricerResult                string                  `json:"pricerResult,omitempty"`           // Pricing service return details
-	StatusIndicator             string                  `json:"statusIndicator,omitempty"`        // (outpatient + professional) Code which gives more detail about how Medicare pays for the service
-	PaymentIndicator            string                  `json:"paymentIndicator,omitempty"`       // (outpatient only) Text which explains the type of payment for Medicare
-	DiscountFormula             string                  `json:"discountFormula,omitempty"`        // (outpatient only) The multi-procedure discount formula used to calculate the allowed amount
-	PackagingFlag               string                  `json:"packagingFlag,omitempty"`          // (outpatient only) Indicates if the service is packaged and the reason for packaging
-	PaymentMethod               string                  `json:"paymentMethod,omitempty"`          // (outpatient only) The method used to calculate the allowed amount
-	PaymentAPC                  string                  `json:"paymentAPC,omitempty"`             // (outpatient only) Ambulatory Payment Classification code used for payment
-	EditDetail                  *LineEdits              `json:"editDetail,omitempty"`             // Errors which cause the line item to be unable to be priced
+	LineNumber                    string                  `json:"lineNumber,omitempty"                    db:"-"`                                  // Number of the service line item (copied from input)
+	ProviderDetail                ProviderDetail          `json:"providerDetail,omitzero"                 db:",inline"`                            // Provider Details used when pricing the service if different than the claim
+	MedicareAmount                float64                 `json:"medicareAmount,omitempty"                db:"medicare_amount"`                    // Amount Medicare would pay for the service
+	AllowedAmount                 float64                 `json:"allowedAmount,omitempty"                 db:"allowed_amount"`                     // Allowed amount based on a contract or RBP pricing
+	MedicareRepricingCode         LineRepricingCode       `json:"medicareRepricingCode,omitempty"         db:"medicare_repricing_code"`            // Explains the methodology used to calculate Medicare
+	MedicareRepricingNote         string                  `json:"medicareRepricingNote,omitempty"         db:"medicare_repricing_note"`            // Note explaining approach for pricing or reason for error
+	NetworkCode                   string                  `json:"networkCode,omitempty"                   db:"network_code"`                       // The network code used for pricing (is placed into HCP04)
+	AllowedRepricingCode          LineRepricingCode       `json:"allowedRepricingCode,omitempty"          db:"allowed_repricing_code"`             // Explains the methodology used to calculate allowed amount
+	AllowedRepricingNote          string                  `json:"allowedRepricingNote,omitempty"          db:"allowed_repricing_note"`             // Note explaining approach for pricing or reason for error
+	AllowedRepricingFormula       AllowedRepricingFormula `json:"allowedRepricingFormula,omitzero"        db:",inline"`                            // Formula used to calculate the allowed amount
+	TechnicalComponentAmount      float64                 `json:"tcAmount,omitempty"                      db:"technical_component_amount"`         // Amount Medicare would pay for the technical component
+	ProfessionalComponentAmount   float64                 `json:"pcAmount,omitempty"                      db:"professional_component_amount"`      // Amount Medicare would pay for the professional component
+	MedicareStdDev                float64                 `json:"medicareStdDev,omitempty"                db:"medicare_std_dev"`                   // Standard deviation of the estimated Medicare amount (estimates service only)
+	MedicareSource                MedicareSource          `json:"medicareSource,omitempty"                db:"medicare_source"`                    // Source of the Medicare amount (e.g. physician fee schedule, OPPS, etc.)
+	PricerResult                  string                  `json:"pricerResult,omitempty"                  db:"pricer_result"`                      // Pricing service return details
+	StatusIndicator               string                  `json:"statusIndicator,omitempty"               db:"status_indicator"`                   // Code which gives more detail about how Medicare pays for the service (outpatient + professional)
+	PaymentIndicator              string                  `json:"paymentIndicator,omitempty"              db:"payment_indicator"`                  // Text which explains the type of payment for Medicare (outpatient only)
+	DiscountFormula               string                  `json:"discountFormula,omitempty"               db:"discount_formula"`                   // The multi-procedure discount formula used to calculate the allowed amount (outpatient only)
+	LineItemDenialOrRejectionFlag string                  `json:"lineItemDenialOrRejectionFlag,omitempty" db:"line_item_denial_or_rejection_flag"` // Identifies how a line item was denied or rejected and how the rejection can be overridden (outpatient only)
+	PackagingFlag                 string                  `json:"packagingFlag,omitempty"                 db:"packaging_flag"`                     // Indicates if the service is packaged and the reason for packaging (outpatient only)
+	PaymentAdjustmentFlag         string                  `json:"paymentAdjustmentFlag,omitempty"         db:"payment_adjustment_flag"`            // Identifies special adjustments made to the payment (outpatient only)
+	PaymentAdjustmentFlag2        string                  `json:"paymentAdjustmentFlag2,omitempty"        db:"payment_adjustment_flag2"`           // Identifies special adjustments made to the payment (outpatient only)
+	PaymentMethodFlag             string                  `json:"paymentMethodFlag,omitempty"             db:"payment_method_flag"`                // The method used to calculate the allowed amount (outpatient only)
+	CompositeAdjustmentFlag       string                  `json:"compositeAdjustmentFlag,omitempty"       db:"composite_adjustment_flag"`          // Assists in composite APC determination (outpatient only)
+	HCPCSAPC                      string                  `json:"hcpcsAPC,omitempty"                      db:"hcpcs_apc"`                          // Ambulatory Payment Classification code of the line item HCPCS (outpatient only)
+	PaymentAPC                    string                  `json:"paymentAPC,omitempty"                    db:"payment_apc"`                        // Ambulatory Payment Classification code used for payment (outpatient only)
+	EditDetail                    LineEdits               `json:"editDetail,omitzero"                     db:",inline"`                            // Errors which cause the line item to be unable to be priced
 }
 
 type AllowedRepricingFormula struct {
-	MedicarePercent float64 `json:"medicarePercent,omitempty"` // Percentage of the Medicare amount used to calculate the allowed amount
-	BilledPercent   float64 `json:"billedPercent,omitempty"`   // Percentage of the billed amount used to calculate the allowed amount
-	FixedAmount     float64 `json:"fixedAmount,omitempty"`     // Fixed amount used as the allowed amount
+	MedicarePercent float64 `json:"medicarePercent,omitempty" db:"allowed_repricing_formula_medicare_percent"` // Percentage of the Medicare amount used to calculate the allowed amount
+	BilledPercent   float64 `json:"billedPercent,omitempty"   db:"allowed_repricing_formula_billed_percent"`   // Percentage of the billed amount used to calculate the allowed amount
+	FixedAmount     float64 `json:"fixedAmount,omitempty"     db:"allowed_repricing_formula_fixed_amount"`     // Fixed amount used as the allowed amount
+}
+
+func (s PricedService) GetRepricingNote() string {
+	var buf strings.Builder
+	if s.AllowedRepricingNote != "" {
+		buf.WriteString(s.AllowedRepricingNote)
+	} else if s.MedicareRepricingNote != "" {
+		buf.WriteString(s.MedicareRepricingNote)
+	}
+	if edit := s.EditDetail; !edit.IsEmpty() {
+		if buf.Len() > 0 {
+			buf.WriteString(". ")
+		}
+		buf.WriteString(edit.GetMessage())
+	}
+	return buf.String()
 }
 
 // InpatientPriceDetail contains pricing details for an inpatient claim.
@@ -219,45 +242,60 @@ func (p ProviderDetail) IsEmpty() bool {
 
 // ClaimEdits contains errors which cause the claim to be denied, rejected, suspended, or returned to the provider.
 type ClaimEdits struct {
-	HCP13DenyCode                    string   `json:"hcpDenyCode,omitempty"`                      // The deny code that will be placed into the HCP13 data element for EDI 837 claims
-	ClaimOverallDisposition          string   `json:"claimOverallDisposition,omitempty"`          // Overall explanation of why the claim edit failed
-	ClaimRejectionDisposition        string   `json:"claimRejectionDisposition,omitempty"`        // Explanation of why the claim was rejected
-	ClaimDenialDisposition           string   `json:"claimDenialDisposition,omitempty"`           // Explanation of why the claim was denied
-	ClaimReturnToProviderDisposition string   `json:"claimReturnToProviderDisposition,omitempty"` // Explanation of why the claim should be returned to provider
-	ClaimSuspensionDisposition       string   `json:"claimSuspensionDisposition,omitempty"`       // Explanation of why the claim was suspended
-	LineItemRejectionDisposition     string   `json:"lineItemRejectionDisposition,omitempty"`     // Explanation of why the line item was rejected
-	LineItemDenialDisposition        string   `json:"lineItemDenialDisposition,omitempty"`        // Explanation of why the line item was denied
-	ClaimRejectionReasons            []string `json:"claimRejectionReasons,omitempty"`            // Detailed reason(s) describing why the claim was rejected
-	ClaimDenialReasons               []string `json:"claimDenialReasons,omitempty"`               // Detailed reason(s) describing why the claim was denied
-	ClaimReturnToProviderReasons     []string `json:"claimReturnToProviderReasons,omitempty"`     // Detailed reason(s) describing why the claim should be returned to provider
-	ClaimSuspensionReasons           []string `json:"claimSuspensionReasons,omitempty"`           // Detailed reason(s) describing why the claim was suspended
-	LineItemRejectionReasons         []string `json:"lineItemRejectionReasons,omitempty"`         // Detailed reason(s) describing why the line item was rejected
-	LineItemDenialReasons            []string `json:"lineItemDenialReasons,omitempty"`            // Detailed reason(s) describing why the line item was denied
+	HCP13DenyCode                    string   `json:"hcpDenyCode,omitempty"                      db:"hcp_deny_code"`                             // The deny code that will be placed into the HCP13 data element for EDI 837 claims
+	ClaimOverallDisposition          string   `json:"claimOverallDisposition,omitempty"          db:"claim_edit_overall_disposition"`            // Overall explanation of why the claim edit failed
+	ClaimRejectionDisposition        string   `json:"claimRejectionDisposition,omitempty"        db:"claim_edit_rejection_disposition"`          // Explanation of why the claim was rejected
+	ClaimDenialDisposition           string   `json:"claimDenialDisposition,omitempty"           db:"claim_edit_denial_disposition"`             // Explanation of why the claim was denied
+	ClaimReturnToProviderDisposition string   `json:"claimReturnToProviderDisposition,omitempty" db:"claim_edit_return_to_provider_disposition"` // Explanation of why the claim should be returned to provider
+	ClaimSuspensionDisposition       string   `json:"claimSuspensionDisposition,omitempty"       db:"claim_edit_suspension_disposition"`         // Explanation of why the claim was suspended
+	LineItemRejectionDisposition     string   `json:"lineItemRejectionDisposition,omitempty"     db:"line_item_edit_rejection_disposition"`      // Explanation of why the line item was rejected
+	LineItemDenialDisposition        string   `json:"lineItemDenialDisposition,omitempty"        db:"line_item_edit_denial_disposition"`         // Explanation of why the line item was denied
+	ClaimRejectionReasons            []string `json:"claimRejectionReasons,omitempty"            db:"claim_edit_rejection_reasons"`              // Detailed reason(s) describing why the claim was rejected
+	ClaimDenialReasons               []string `json:"claimDenialReasons,omitempty"               db:"claim_edit_denial_reasons"`                 // Detailed reason(s) describing why the claim was denied
+	ClaimReturnToProviderReasons     []string `json:"claimReturnToProviderReasons,omitempty"     db:"claim_edit_return_to_provider_reasons"`     // Detailed reason(s) describing why the claim should be returned to provider
+	ClaimSuspensionReasons           []string `json:"claimSuspensionReasons,omitempty"           db:"claim_edit_suspension_reasons"`             // Detailed reason(s) describing why the claim was suspended
+	LineItemRejectionReasons         []string `json:"lineItemRejectionReasons,omitempty"         db:"line_item_edit_rejection_reasons"`          // Detailed reason(s) describing why the line item was rejected
+	LineItemDenialReasons            []string `json:"lineItemDenialReasons,omitempty"            db:"line_item_edit_denial_reasons"`             // Detailed reason(s) describing why the line item was denied
 }
 
-func (c ClaimEdits) IsEmpty() bool {
-	return c.HCP13DenyCode == "" && c.ClaimOverallDisposition == "" && c.ClaimRejectionDisposition == "" &&
-		c.ClaimDenialDisposition == "" && c.ClaimReturnToProviderDisposition == "" && c.ClaimSuspensionDisposition == "" &&
-		c.LineItemRejectionDisposition == "" && c.LineItemDenialDisposition == "" && len(c.ClaimRejectionReasons) == 0 &&
-		len(c.ClaimDenialReasons) == 0 && len(c.ClaimReturnToProviderReasons) == 0 && len(c.ClaimSuspensionReasons) == 0 &&
-		len(c.LineItemRejectionReasons) == 0 && len(c.LineItemDenialReasons) == 0
+func (e *ClaimEdits) IsEmpty() bool {
+	return e == nil || e.HCP13DenyCode == "" && e.ClaimOverallDisposition == "" && e.ClaimRejectionDisposition == "" && e.ClaimDenialDisposition == "" &&
+		e.ClaimReturnToProviderDisposition == "" && e.ClaimSuspensionDisposition == "" && e.LineItemRejectionDisposition == "" && e.LineItemDenialDisposition == "" &&
+		len(e.ClaimRejectionReasons) == 0 && len(e.ClaimDenialReasons) == 0 && len(e.ClaimReturnToProviderReasons) == 0 && len(e.ClaimSuspensionReasons) == 0 &&
+		len(e.LineItemRejectionReasons) == 0 && len(e.LineItemDenialReasons) == 0
+}
+
+func (e *ClaimEdits) GetMessage() string {
+	if e == nil {
+		return ""
+	}
+	edits := set.NewOrderedSet[string]()
+	edits.AddSlices(e.ClaimRejectionReasons, e.ClaimDenialReasons, e.ClaimReturnToProviderReasons, e.ClaimSuspensionReasons, e.LineItemRejectionReasons, e.LineItemDenialReasons)
+	return strings.Join(edits.Items(), "|")
 }
 
 // LineEdits contains errors which cause the line item to be unable to be priced.
 type LineEdits struct {
-	DenialOrRejectionText string   `json:"denialOrRejectionText,omitempty"` // The overall explanation for why this line item was denied or rejected by the claim editor
-	ProcedureEdits        []string `json:"procedureEdits,omitempty"`        // Detailed description of each procedure code edit error (from outpatient editor)
-	Modifier1Edits        []string `json:"modifier1Edits,omitempty"`        // Detailed description of each edit error for the first procedure code modifier (from outpatient editor)
-	Modifier2Edits        []string `json:"modifier2Edits,omitempty"`        // Detailed description of each edit error for the second procedure code modifier (from outpatient editor)
-	Modifier3Edits        []string `json:"modifier3Edits,omitempty"`        // Detailed description of each edit error for the third procedure code modifier (from outpatient editor)
-	Modifier4Edits        []string `json:"modifier4Edits,omitempty"`        // Detailed description of each edit error for the fourth procedure code modifier (from outpatient editor)
-	Modifier5Edits        []string `json:"modifier5Edits,omitempty"`        // Detailed description of each edit error for the fifth procedure code modifier (from outpatient editor)
-	DataEdits             []string `json:"dataEdits,omitempty"`             // Detailed description of each data edit error (from outpatient editor)
-	RevenueEdits          []string `json:"revenueEdits,omitempty"`          // Detailed description of each revenue code edit error (from outpatient editor)
+	ProcedureEdits []string `json:"procedureEdits,omitempty" db:"procedure_edits"` // Detailed description of each procedure code edit error (from outpatient editor)
+	Modifier1Edits []string `json:"modifier1Edits,omitempty" db:"modifier1_edits"` // Detailed description of each edit error for the first procedure code modifier (from outpatient editor)
+	Modifier2Edits []string `json:"modifier2Edits,omitempty" db:"modifier2_edits"` // Detailed description of each edit error for the second procedure code modifier (from outpatient editor)
+	Modifier3Edits []string `json:"modifier3Edits,omitempty" db:"modifier3_edits"` // Detailed description of each edit error for the third procedure code modifier (from outpatient editor)
+	Modifier4Edits []string `json:"modifier4Edits,omitempty" db:"modifier4_edits"` // Detailed description of each edit error for the fourth procedure code modifier (from outpatient editor)
+	Modifier5Edits []string `json:"modifier5Edits,omitempty" db:"modifier5_edits"` // Detailed description of each edit error for the fifth procedure code modifier (from outpatient editor)
+	DataEdits      []string `json:"dataEdits,omitempty"      db:"data_edits"`      // Detailed description of each data edit error (from outpatient editor)
+	RevenueEdits   []string `json:"revenueEdits,omitempty"   db:"revenue_edits"`   // Detailed description of each revenue code edit error (from outpatient editor)
 }
 
-func (l LineEdits) IsEmpty() bool {
-	return l.DenialOrRejectionText == "" && len(l.ProcedureEdits) == 0 && len(l.Modifier1Edits) == 0 &&
-		len(l.Modifier2Edits) == 0 && len(l.Modifier3Edits) == 0 && len(l.Modifier4Edits) == 0 &&
-		len(l.Modifier5Edits) == 0 && len(l.DataEdits) == 0 && len(l.RevenueEdits) == 0
+func (e *LineEdits) IsEmpty() bool {
+	return e == nil || len(e.ProcedureEdits) == 0 && len(e.Modifier1Edits) == 0 && len(e.Modifier2Edits) == 0 &&
+		len(e.Modifier3Edits) == 0 && len(e.Modifier4Edits) == 0 && len(e.Modifier5Edits) == 0 &&
+		len(e.DataEdits) == 0 && len(e.RevenueEdits) == 0
+}
+
+func (e *LineEdits) GetMessage() string {
+	if e == nil {
+		return ""
+	}
+	edits := append(append(append(append(append(append(append(e.ProcedureEdits, e.RevenueEdits...), e.Modifier1Edits...), e.Modifier2Edits...), e.Modifier3Edits...), e.Modifier4Edits...), e.Modifier5Edits...), e.DataEdits...)
+	return strings.Join(edits, "|")
 }
