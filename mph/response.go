@@ -1,6 +1,7 @@
 package mph
 
 import (
+	"braces.dev/errtrace"
 	"encoding/json"
 )
 
@@ -25,23 +26,23 @@ A successful response with a single result might look like this:
 }
 */
 type Response[Result any] struct {
-	Error      *ResponseError `json:"error,omitempty"`  // supplied when entire response is an error
-	Result     Result         `json:"result,omitempty"` // supplied on success. Will be a single object.
-	StatusCode int            `json:"status"`           // supplied on success and error
+	Error      *ResponseError `json:"error,omitzero"`  // supplied when entire response is an error
+	Result     Result         `json:"result,omitzero"` // supplied on success. Will be a single object.
+	StatusCode int            `json:"status"`          // supplied on success and error
 }
 
 type responseJSON[Result any] struct {
-	Message    string         `json:"message,omitempty"`
-	Code       int            `json:"code,omitempty"`
-	Error      *ResponseError `json:"error,omitempty"`
-	Result     Result         `json:"result,omitempty"`
+	Message    string         `json:"message,omitzero"`
+	Code       int            `json:"code,omitzero"`
+	Error      *ResponseError `json:"error,omitzero"`
+	Result     Result         `json:"result,omitzero"`
 	StatusCode int            `json:"status"`
 }
 
 func (r *Response[Result]) UnmarshalJSON(data []byte) error {
 	var rj responseJSON[Result]
 	if err := json.Unmarshal(data, &rj); err != nil {
-		return err
+		return errtrace.Wrap(err)
 	}
 	r.Error = rj.Error
 	r.Result = rj.Result
@@ -92,18 +93,18 @@ A successful response with multiple results might look like this (note no embedd
 }
 */
 type Responses[Result any] struct {
-	Error        *ResponseError `json:"error,omitempty"`   // supplied when entire response is an error
-	Results      []Result       `json:"results,omitempty"` // A slice of results that will either be a successful result or an error.
-	SuccessCount int            `json:"successCount"`      // count of successful results when WriteResults is called
-	ErrorCount   int            `json:"errorCount"`        // count of errored results when WriteResults is called
-	StatusCode   int            `json:"status"`            // supplied on success and error
+	Error        *ResponseError `json:"error,omitzero"`   // supplied when entire response is an error
+	Results      []Result       `json:"results,omitzero"` // A slice of results that will either be a successful result or an error.
+	SuccessCount int            `json:"successCount"`     // count of successful results when WriteResults is called
+	ErrorCount   int            `json:"errorCount"`       // count of errored results when WriteResults is called
+	StatusCode   int            `json:"status"`           // supplied on success and error
 }
 
 type responsesJSON[Result any] struct {
-	Message      string         `json:"message,omitempty"`
-	Code         int            `json:"code,omitempty"`
-	Error        *ResponseError `json:"error,omitempty"`
-	Results      []Result       `json:"results,omitempty"`
+	Message      string         `json:"message,omitzero"`
+	Code         int            `json:"code,omitzero"`
+	Error        *ResponseError `json:"error,omitzero"`
+	Results      []Result       `json:"results,omitzero"`
 	SuccessCount int            `json:"successCount"`
 	ErrorCount   int            `json:"errorCount"`
 	StatusCode   int            `json:"status"`
@@ -112,7 +113,7 @@ type responsesJSON[Result any] struct {
 func (r *Responses[Result]) UnmarshalJSON(data []byte) error {
 	var rj responsesJSON[Result]
 	if err := json.Unmarshal(data, &rj); err != nil {
-		return err
+		return errtrace.Wrap(err)
 	}
 	r.Error = rj.Error
 	r.Results = rj.Results
@@ -128,8 +129,8 @@ func (r *Responses[Result]) UnmarshalJSON(data []byte) error {
 
 // ResponseError supplies detailed error information when an entire request or an item in a response fails
 type ResponseError struct {
-	Title  string `json:"title,omitempty"`
-	Detail string `json:"detail,omitempty"`
+	Title  string `json:"title,omitzero"`
+	Detail string `json:"detail,omitzero"`
 }
 
 func (e *ResponseError) Error() string {
