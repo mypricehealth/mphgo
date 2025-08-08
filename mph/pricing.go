@@ -2,6 +2,7 @@ package mph
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"braces.dev/errtrace"
@@ -13,6 +14,8 @@ type LineRepricingCode string
 type HospitalType string
 type RuralIndicator string
 type MedicareSource string
+type Step string
+type Status string
 
 var _ json.Unmarshaler = new(RuralIndicator)
 
@@ -112,6 +115,74 @@ const (
 	MedicareSourceSNF                    MedicareSource = "SNF PPS"
 	MedicareSourceSynthetic              MedicareSource = "Synthetic Medicare"
 )
+
+const (
+	stepNew                  Step = "New"
+	stepReceived             Step = "Received"
+	StepPending              Step = "Pending"
+	stepHeld                 Step = "Held"
+	stepError                Step = "Error"
+	stepProviderMatched      Step = "Provider Matched"
+	stepEditComplete         Step = "Edit Complete"
+	stepMedicarePriced       Step = "Medicare Priced"
+	stepPrimaryAllowedPriced Step = "Primary Allowed Priced"
+	stepNetworkAllowedPriced Step = "Network Allowed Priced"
+	stepOutOfNetwork         Step = "Out of Network"
+	stepRequestMoreInfo      Step = "Request More Info"
+	stepPriced               Step = "Priced"
+	stepReturned             Step = "Returned"
+)
+
+const (
+	statusPendingClaimEditReview             Status = "Claim Edit Review"
+	statusPendingProviderMatching            Status = "Provider Matching"
+	statusPendingMedicareReview              Status = "Medicare Review"
+	statusPendingMedicareCalculation         Status = "Medicare Calculation"
+	statusPendingPrimaryAllowedReview        Status = "Primary Allowed Review"
+	statusPendingNetworkAllowedReview        Status = "Network Allowed Review"
+	statusPendingPrimaryAllowedDetermination Status = "Primary Allowed Determination"
+	statusPendingNetworkAllowedDetermination Status = "Network Allowed Determination"
+)
+
+var (
+	StatusNew                                = ClaimStatus{Step: stepNew}                                                       // created by TPA. We use the transaction date as a proxy for this date
+	StatusReceived                           = ClaimStatus{Step: stepReceived}                                                  // received and ready for processing. This is modified date of the file we get from SFTP
+	StatusHeld                               = ClaimStatus{Step: stepHeld}                                                      // held for various reasons
+	StatusError                              = ClaimStatus{Step: stepError}                                                     // claim encountered an error during processing
+	StatusProviderMatched                    = ClaimStatus{Step: stepProviderMatched}                                           // providers in the claim have been matched to the provider system of record
+	StatusEditComplete                       = ClaimStatus{Step: stepEditComplete}                                              // claim has been edited and is ready for pricing
+	StatusMedicarePriced                     = ClaimStatus{Step: stepMedicarePriced}                                            // claim has been priced according to Medicare
+	StatusPrimaryAllowedPriced               = ClaimStatus{Step: stepPrimaryAllowedPriced}                                      // claim has been priced according to the primary allowed amount (e.g. contract, RBP, etc.)
+	StatusNetworkAllowedPriced               = ClaimStatus{Step: stepNetworkAllowedPriced}                                      // claim has been priced according to the allowed amount of the network
+	StatusOutOfNetwork                       = ClaimStatus{Step: stepOutOfNetwork}                                              // is out of network
+	StatusRequestMoreInfo                    = ClaimStatus{Step: stepRequestMoreInfo}                                           // return claim to trading partner for more information to enable correct processing
+	StatusPriced                             = ClaimStatus{Step: stepPriced}                                                    // done pricing
+	StatusReturned                           = ClaimStatus{Step: stepReturned}                                                  // returned to TPA
+	StatusPendingClaimEditReview             = ClaimStatus{Step: StepPending, Status: statusPendingClaimEditReview}             // waiting for claim edit review
+	StatusPendingProviderMatching            = ClaimStatus{Step: StepPending, Status: statusPendingProviderMatching}            // waiting for provider matching
+	StatusPendingMedicareReview              = ClaimStatus{Step: StepPending, Status: statusPendingMedicareReview}              // waiting for Medicare amount review
+	StatusPendingMedicareCalculation         = ClaimStatus{Step: StepPending, Status: statusPendingMedicareCalculation}         // waiting for Medicare amount calculation
+	StatusPendingPrimaryAllowedReview        = ClaimStatus{Step: StepPending, Status: statusPendingPrimaryAllowedReview}        // waiting for primary allowed amount review
+	StatusPendingNetworkAllowedReview        = ClaimStatus{Step: StepPending, Status: statusPendingNetworkAllowedReview}        // waiting for network allowed amount review
+	StatusPendingPrimaryAllowedDetermination = ClaimStatus{Step: StepPending, Status: statusPendingPrimaryAllowedDetermination} // waiting for the primary allowed amount (e.g. contract, RBP rate, etc.) to be determined
+	StatusPendingNetworkAllowedDetermination = ClaimStatus{Step: StepPending, Status: statusPendingNetworkAllowedDetermination} // waiting for allowed amount from the network
+)
+
+type ClaimStatus struct {
+	Step   Step   `json:"step,omitempty"`
+	Status Status `json:"pendingStatus,omitempty"`
+}
+
+func (s ClaimStatus) IsEmpty() bool {
+	return s.Step == "" && s.Status == ""
+}
+
+func (s ClaimStatus) String() string {
+	if s.Status != "" {
+		return fmt.Sprintf("%s %s", s.Step, s.Status)
+	}
+	return string(s.Step)
+}
 
 // Pricing contains the results of a pricing request
 type Pricing struct {
