@@ -95,10 +95,11 @@ func NewResponseError(title string, detail error) *ResponseError {
 	if detail == nil || detail.Error() == "" {
 		return nil
 	}
-	return &ResponseError{
-		Title:  title,
-		Detail: detail.Error(),
-	}
+	return NewResponseErrorText(title, detail.Error())
+}
+
+func NewResponseErrorText(title, detail string) *ResponseError {
+	return &ResponseError{Title: title, Detail: detail}
 }
 
 func (r *ResponseError) Error() string {
