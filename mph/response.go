@@ -1,8 +1,9 @@
 package mph
 
 import (
-	"braces.dev/errtrace"
 	"encoding/json"
+
+	"braces.dev/errtrace"
 )
 
 // Response contains the standardized API response data used by all My Price Health API's. It is based off of the generalized error handling recommendation found
@@ -29,6 +30,22 @@ type Response[Result any] struct {
 	Error      *ResponseError `json:"error,omitzero"`  // supplied when entire response is an error
 	Result     Result         `json:"result,omitzero"` // supplied on success. Will be a single object.
 	StatusCode int            `json:"status"`          // supplied on success and error
+}
+
+func (r Response[Result]) Unwrap() (Result, *Error) {
+	var empty Result
+	if r.Error != nil {
+		return empty, r.GetError()
+	}
+
+	return r.Result, nil
+}
+
+func (r Response[Result]) GetError() *Error {
+	if r.Error == nil {
+		return nil
+	}
+	return NewError(r.Error.Title, errtrace.Errorf("%s", r.Error.Detail), r.StatusCode)
 }
 
 type responseJSON[Result any] struct {
@@ -92,47 +109,41 @@ A successful response with multiple results might look like this (note no embedd
 	"errorCount": 0,
 }
 */
-type Responses[Result any] struct {
-	Error        *ResponseError `json:"error,omitzero"`   // supplied when entire response is an error
-	Results      []Result       `json:"results,omitzero"` // A slice of results that will either be a successful result or an error.
-	SuccessCount int            `json:"successCount"`     // count of successful results when WriteResults is called
-	ErrorCount   int            `json:"errorCount"`       // count of errored results when WriteResults is called
-	StatusCode   int            `json:"status"`           // supplied on success and error
+type ErrorAndResultResponses[Result any] struct {
+	Error        *ResponseError           `json:"error,omitempty"`   // supplied when entire response is an error
+	Results      []ErrorAndResult[Result] `json:"results,omitempty"` // A slice of results that will either be a successful result or an error.
+	SuccessCount int                      `json:"successCount"`      // count of successful results when WriteResults is called
+	ErrorCount   int                      `json:"errorCount"`        // count of errored results when WriteResults is called
+	StatusCode   int                      `json:"status"`            // supplied on success and error
 }
 
-type responsesJSON[Result any] struct {
-	Message      string         `json:"message,omitzero"`
-	Code         int            `json:"code,omitzero"`
-	Error        *ResponseError `json:"error,omitzero"`
-	Results      []Result       `json:"results,omitzero"`
-	SuccessCount int            `json:"successCount"`
-	ErrorCount   int            `json:"errorCount"`
-	StatusCode   int            `json:"status"`
-}
-
-func (r *Responses[Result]) UnmarshalJSON(data []byte) error {
-	var rj responsesJSON[Result]
-	if err := json.Unmarshal(data, &rj); err != nil {
-		return errtrace.Wrap(err)
+func (r ErrorAndResultResponses[Result]) GetError() *Error {
+	if r.Error == nil {
+		return nil
 	}
-	r.Error = rj.Error
-	r.Results = rj.Results
-	r.SuccessCount = rj.SuccessCount
-	r.ErrorCount = rj.ErrorCount
-	r.StatusCode = rj.StatusCode
-	if rj.Code != 0 {
-		r.StatusCode = rj.Code
-		r.Error = &ResponseError{Title: rj.Message}
+	return NewError(r.Error.Title, errtrace.Errorf("%s", r.Error.Detail), r.StatusCode)
+}
+
+func (r ErrorAndResultResponses[Result]) Unwrap() ([]ErrorAndResult[Result], *Error) {
+	if err := r.GetError(); err != nil {
+		return nil, err
 	}
-	return nil
+	return r.Results, nil
 }
 
-// ResponseError supplies detailed error information when an entire request or an item in a response fails
-type ResponseError struct {
-	Title  string `json:"title,omitzero"`
-	Detail string `json:"detail,omitzero"`
+// ErrorOrResult stores both an error value and a result at the same time. It is primarily used when partial results are desired to be returned.
+type ErrorAndResult[Result any] struct {
+	Error  *ResponseError `json:"error,omitempty"`
+	Result Result         `json:"result,omitzero"`
 }
 
-func (e *ResponseError) Error() string {
-	return e.Title + ": " + e.Detail
+func (e ErrorAndResult[Result]) Unwrap() (Result, *ResponseError) {
+	return e.Result, e.Error
+}
+
+func NewErrorAndResult[Result any](result Result, err *ResponseError) ErrorAndResult[Result] {
+	return ErrorAndResult[Result]{
+		Error:  err,
+		Result: result,
+	}
 }
