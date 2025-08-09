@@ -170,7 +170,7 @@ var (
 
 type ClaimStatus struct {
 	Step   Step   `json:"step,omitempty"`
-	Status Status `json:"pendingStatus,omitempty"`
+	Status Status `json:"status,omitempty"`
 }
 
 func (s ClaimStatus) IsEmpty() bool {
