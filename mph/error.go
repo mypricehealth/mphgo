@@ -1,18 +1,12 @@
-package web
+package mph
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
-	"os"
-	"testing"
 
 	"braces.dev/errtrace"
-	"github.com/mypricehealth/mono/pkg/client/notify"
-	"github.com/mypricehealth/mono/pkg/test"
-	"github.com/mypricehealth/mono/pkg/traceutils"
-	"github.com/stretchr/testify/assert"
 )
 
 type Error struct {
@@ -28,26 +22,6 @@ func (e *Error) IsFatal() bool {
 type errorJSON struct {
 	Title     string `json:"title,omitempty"`
 	ErrorCode int    `json:"errorCode,omitempty"`
-}
-
-func ErrorEqual(t *testing.T, want *Error, got *Error) {
-	var wantCopy *Error
-	if want != nil {
-		wantCopy = new(Error)
-		*wantCopy = *want
-
-		wantCopy.Detail = test.UnwrapErrtrace(wantCopy.Detail)
-	}
-
-	var gotCopy *Error
-	if got != nil {
-		gotCopy = new(Error)
-		*gotCopy = *got
-
-		gotCopy.Detail = test.UnwrapErrtrace(gotCopy.Detail)
-	}
-
-	assert.Equal(t, wantCopy, gotCopy)
 }
 
 func (e *Error) Unwrap() error {
@@ -125,10 +99,7 @@ func NewResponseError(title string, detail error) *ResponseError {
 }
 
 func NewResponseErrorText(title, detail string) *ResponseError {
-	return &ResponseError{
-		Title:  title,
-		Detail: detail,
-	}
+	return &ResponseError{Title: title, Detail: detail}
 }
 
 func (r *ResponseError) Error() string {
@@ -172,79 +143,4 @@ func ClientError(title string, detail error) *Error {
 
 func InternalError(title string, detail error) *Error {
 	return NewError(title, detail, http.StatusInternalServerError)
-}
-
-// HandleInternalError is a convenience function that.
-func HandleInternalError(w http.ResponseWriter, notifier notify.Client, errDetail error, title string) bool {
-	return HandleError(w, notifier, InternalError(title, errDetail))
-}
-
-func HandleClientError(w http.ResponseWriter, errDetail error, title string) bool {
-	return HandleError(w, nil, ClientError(title, errDetail))
-}
-
-// HandleError checks the err provided to see if it is not nil. If the error is not nil, HandleError will:
-// 1. Output JSON to the client with the title provided in the `title` parameter for the error title.
-// 2. Notify support provided that `IsFatal` is true and `client` is not nil.
-// 3. Returns true if there is an error. False if there is no error.
-func HandleError(w http.ResponseWriter, notifier notify.Client, err *Error) bool {
-	if err != nil && err.Detail != nil {
-		WriteError(w, notifier, err.Title, err.Detail.Error(), err.ErrorCode)
-
-		if err.IsFatal() {
-			fmt.Fprintf(os.Stderr, "Web API error: %s: %s\n", err.Title, err.Detail)
-			if notifier != nil {
-				go notifier.SendMessage(fmt.Sprintf("Web API error: %s: %s\n", err.Title, err.Detail)) //nolint:errcheck // error is checked and logged in notifier
-			}
-		}
-
-		return true
-	}
-
-	return false
-}
-
-// WriteError writes an error to the http.ResponseWriter using a standard format like:
-//
-//	{
-//		"error": "error message",
-//		"status": 400
-//	}
-func WriteError(w http.ResponseWriter, client notify.Client, title, detail string, httpStatusCode int) {
-	writeErrorJSON(w, client, Response[any]{
-		Error: &ResponseError{
-			Title:  title,
-			Detail: detail,
-		},
-		StatusCode: httpStatusCode,
-	}, httpStatusCode)
-}
-
-func EndSpan(span traceutils.Span, webErrPtr **Error) {
-	var err error
-	if webErrPtr != nil {
-		webErr := *webErrPtr
-		if webErr != nil {
-			err = webErr
-		}
-	}
-
-	span.EndErr(&err)
-}
-
-// Call UnwrapError to unwrap `err` into a `*web.Error`.
-// If `err` is not a `*web.Error` it will be turned into an internal error with the given title.
-func UnwrapError(err error, internalErrorTitle string) *Error {
-	err = test.UnwrapErrtrace(err)
-
-	//nolint:errorlint // Avoids using `errors.As` because a web error wrapped in another error could indicate something completely different.
-	if webErr, ok := err.(*Error); ok {
-		if webErr == nil {
-			return InternalError(internalErrorTitle, errtrace.Errorf("a nil *web.Error was cast to an error, making the error non-nil"))
-		}
-
-		return webErr
-	}
-
-	return InternalError(internalErrorTitle, err)
 }

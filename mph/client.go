@@ -13,9 +13,9 @@ import (
 // Pricer is the interface that wraps the Price and PriceBatch methods.
 type Pricer interface {
 	Price(ctx context.Context, config PriceConfig, input Claim) Response[Pricing]
-	PriceBatch(ctx context.Context, config PriceConfig, inputs ...Claim) Responses[Pricing]
-	EstimateClaims(ctx context.Context, inputs ...Claim) Responses[Pricing]
-	EstimateRateSheet(ctx context.Context, inputs ...RateSheet) Responses[Pricing]
+	PriceBatch(ctx context.Context, config PriceConfig, inputs ...Claim) ErrorAndResultResponses[Pricing]
+	EstimateClaims(ctx context.Context, inputs ...Claim) ErrorAndResultResponses[Pricing]
+	EstimateRateSheet(ctx context.Context, inputs ...RateSheet) ErrorAndResultResponses[Pricing]
 }
 
 // PriceConfig is used to configure the behavior of the pricing API.
@@ -70,8 +70,8 @@ func (c Client) receiveResponse(ctx context.Context, s *sling.Sling, path string
 	return response
 }
 
-func (c *Client) receiveResponses(ctx context.Context, s *sling.Sling, path string, count int) Responses[Pricing] {
-	var responses Responses[Pricing]
+func (c *Client) receiveResponses(ctx context.Context, s *sling.Sling, path string, count int) ErrorAndResultResponses[Pricing] {
+	var responses ErrorAndResultResponses[Pricing]
 	res, err := s.Path(path).ReceiveWithContext(ctx, &responses, &responses)
 	if err != nil {
 		responses.Error = &ResponseError{Title: fmt.Sprintf("fatal error calling %s", path), Detail: err.Error()}
@@ -82,12 +82,12 @@ func (c *Client) receiveResponses(ctx context.Context, s *sling.Sling, path stri
 }
 
 // EstimateRateSheet is used to get the estimated Medicare reimbursement of a single claim.
-func (c *Client) EstimateRateSheet(ctx context.Context, inputs ...RateSheet) Responses[Pricing] {
+func (c *Client) EstimateRateSheet(ctx context.Context, inputs ...RateSheet) ErrorAndResultResponses[Pricing] {
 	return c.receiveResponses(ctx, c.sling.BodyJSON(inputs).Method("POST"), "/v1/medicare/estimate/rate-sheet", len(inputs))
 }
 
 // EstimateClaims is used to get the estimated Medicare reimbursement of multiple claims.
-func (c *Client) EstimateClaims(ctx context.Context, inputs ...Claim) Responses[Pricing] {
+func (c *Client) EstimateClaims(ctx context.Context, inputs ...Claim) ErrorAndResultResponses[Pricing] {
 	return c.receiveResponses(ctx, c.sling.BodyJSON(inputs).Method("POST"), "/v1/medicare/estimate/claims", len(inputs))
 }
 
@@ -97,7 +97,7 @@ func (c *Client) Price(ctx context.Context, config PriceConfig, input Claim) Res
 }
 
 // PriceBatch is used to get the Medicare reimbursement of multiple claims.
-func (c *Client) PriceBatch(ctx context.Context, config PriceConfig, inputs ...Claim) Responses[Pricing] {
+func (c *Client) PriceBatch(ctx context.Context, config PriceConfig, inputs ...Claim) ErrorAndResultResponses[Pricing] {
 	return c.receiveResponses(ctx, c.sling.BodyJSON(inputs).AddHeaders(GetHeaders(config)).Method("POST"), "/v1/medicare/price/claims", len(inputs))
 }
 
