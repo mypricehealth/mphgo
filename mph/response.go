@@ -77,8 +77,10 @@ func (r *Response[Result]) UnmarshalJSON(data []byte) error {
 {
 	"results": [
 		{
-			"procedureCode": "ABC",
-			"billedAverage": 15.23
+			"result": {
+				"procedureCode": "ABC",
+				"billedAverage": 15.23
+			}
 		},
 		{
 			"error": {
@@ -90,23 +92,6 @@ func (r *Response[Result]) UnmarshalJSON(data []byte) error {
 	"status": 200,
 	"successCount": 1,
 	"errorCount": 1,
-}
-
-A successful response with multiple results might look like this (note no embedded error field):
-{
-	"results": [
-		{
-			"procedureCode": "ABC",
-			"billedAverage": 15.23
-		},
-		{
-			"procedureCode": "DEF",
-			"billedAverage": 12.22
-		}
-	],
-	"status": 200,
-	"successCount": 2,
-	"errorCount": 0,
 }
 */
 type ErrorAndResultResponses[Result any] struct {
@@ -131,7 +116,7 @@ func (r ErrorAndResultResponses[Result]) Unwrap() ([]ErrorAndResult[Result], *Er
 	return r.Results, nil
 }
 
-// ErrorOrResult stores both an error value and a result at the same time. It is primarily used when partial results are desired to be returned.
+// ErrorAndResult stores both an error value and a result at the same time.
 type ErrorAndResult[Result any] struct {
 	Error  *ResponseError `json:"error,omitempty"`
 	Result Result         `json:"result,omitzero"`
