@@ -30,10 +30,19 @@ func TestRuralIndicatorUnmarshalJSON(t *testing.T) {
 	require.Equal(t, RuralIndicatorUrban, r)
 }
 
+func TestGetClaimRepricingNote(t *testing.T) {
+	t.Parallel()
+	p := Pricing{MedicareRepricingNote: "foo"}
+	assert.Equal(t, "foo", p.GetRepricingNote())
+	p = Pricing{EditDetail: &ClaimEdits{ClaimRejectionReasons: []string{"bar"}}}
+	assert.Equal(t, "bar", p.GetRepricingNote())
+}
+
 func TestServiceGetRepricingNote(t *testing.T) {
 	t.Parallel()
 	s := PricedService{
 		MedicareRepricingNote: "test",
+		EditDetail:            &LineEdits{},
 	}
 	assert.Equal(t, "test", s.GetRepricingNote())
 	s.AllowedRepricingNote = "test2"
