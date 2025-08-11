@@ -216,7 +216,7 @@ type Pricing struct {
 	PricerResult          string                `json:"pricerResult,omitzero"          db:"pricer_result"`           // Pricer return details
 	PriceConfig           PriceConfig           `json:"priceConfig,omitzero"           db:"-"`                       // The configuration used for pricing the claim
 	Services              []PricedService       `json:"services,omitzero,omitempty"    db:"services"`                // Pricing for each service line on the claim
-	EditError             *ResponseError        `json:"error,omitzero"                 db:",inline"`                 // An error that occurred during some step of the pricing process
+	EditError             *ResponseError        `json:"error,omitzero"                 db:"edit_error"`              // An error that occurred during some step of the pricing process
 }
 
 func (p Pricing) IsEmpty() bool {
