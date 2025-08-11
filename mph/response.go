@@ -118,9 +118,9 @@ func (r ErrorAndResultResponses[Result]) Unwrap() ([]ErrorAndResult[Result], *Er
 
 // ErrorAndResult stores both an error value and a result at the same time.
 type ErrorAndResult[Result any] struct {
-	Error  *ResponseError `json:"error,omitempty"`
-	Result Result         `json:"result,omitzero"`
-	Status ClaimStatus    `json:"status,omitzero"` // The step the claim processing reached (for partial results only)
+	Error  *ResponseError `json:"error,omitempty" db:"error"`
+	Result Result         `json:"result,omitzero" db:",inline"`
+	Status ClaimStatus    `json:"status,omitzero" db:"-"` // The step the claim processing reached (for partial results only)
 }
 
 func (e ErrorAndResult[Result]) Unwrap() (Result, *ResponseError) {
