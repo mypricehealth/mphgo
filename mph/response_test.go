@@ -35,7 +35,7 @@ func TestResponsesUnmarshalJSON(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
 		var r ErrorAndResultResponses[testStruct]
-		err := json.Unmarshal([]byte(`{"results": [{"result":{"strVal":"1"}},{"result":{"intVal":2}},{"error":{"title":"lorem","detail":"ipsum"}}], "status": 200}`), &r)
+		err := json.Unmarshal([]byte(`{"results": [{"strVal":"1"},{"intVal":2},{"error":{"title":"lorem","detail":"ipsum"}}], "status": 200}`), &r)
 		require.NoError(t, err)
 
 		assert.Equal(t, ErrorAndResultResponses[testStruct]{Results: []ErrorAndResult[testStruct]{{Result: testStruct{StrVal: "1"}}, {Result: testStruct{IntVal: 2}}, {Error: &ResponseError{Title: "lorem", Detail: "ipsum"}}}, StatusCode: 200}, r)
