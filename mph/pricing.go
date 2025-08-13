@@ -135,6 +135,7 @@ const (
 	StepPending              Step = "Pending"
 	stepHeld                 Step = "Held"
 	stepError                Step = "Error"
+	stepInputValidated       Step = "Input Validated"
 	stepProviderMatched      Step = "Provider Matched"
 	stepEditComplete         Step = "Edit Complete"
 	stepMedicarePriced       Step = "Medicare Priced"
@@ -147,6 +148,7 @@ const (
 )
 
 const (
+	statusPendingClaimInputValidation        Status = "Claim Input Validation"
 	statusPendingClaimEditReview             Status = "Claim Edit Review"
 	statusPendingProviderMatching            Status = "Provider Matching"
 	statusPendingMedicareReview              Status = "Medicare Review"
@@ -162,6 +164,7 @@ var (
 	StatusReceived                           = ClaimStatus{Step: stepReceived}                                                  // received and ready for processing. This is modified date of the file we get from SFTP
 	StatusHeld                               = ClaimStatus{Step: stepHeld}                                                      // held for various reasons
 	StatusError                              = ClaimStatus{Step: stepError}                                                     // claim encountered an error during processing
+	StatusInputValidated                     = ClaimStatus{Step: stepInputValidated}                                            // claim input has been validated
 	StatusProviderMatched                    = ClaimStatus{Step: stepProviderMatched}                                           // providers in the claim have been matched to the provider system of record
 	StatusEditComplete                       = ClaimStatus{Step: stepEditComplete}                                              // claim has been edited and is ready for pricing
 	StatusMedicarePriced                     = ClaimStatus{Step: stepMedicarePriced}                                            // claim has been priced according to Medicare
@@ -171,6 +174,7 @@ var (
 	StatusRequestMoreInfo                    = ClaimStatus{Step: stepRequestMoreInfo}                                           // return claim to trading partner for more information to enable correct processing
 	StatusPriced                             = ClaimStatus{Step: stepPriced}                                                    // done pricing
 	StatusReturned                           = ClaimStatus{Step: stepReturned}                                                  // returned to TPA
+	StatusPendingClaimInputValidation        = ClaimStatus{Step: StepPending, Status: statusPendingClaimInputValidation}        // waiting for claim input validation
 	StatusPendingClaimEditReview             = ClaimStatus{Step: StepPending, Status: statusPendingClaimEditReview}             // waiting for claim edit review
 	StatusPendingProviderMatching            = ClaimStatus{Step: StepPending, Status: statusPendingProviderMatching}            // waiting for provider matching
 	StatusPendingMedicareReview              = ClaimStatus{Step: StepPending, Status: statusPendingMedicareReview}              // waiting for Medicare amount review

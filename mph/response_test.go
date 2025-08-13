@@ -107,12 +107,12 @@ func TestErrorAndResultMarshal(t *testing.T) {
 	}
 	data, err := json.Marshal(v)
 	require.NoError(t, err)
-	assert.JSONEq(t, `{"error":{"title":"foo","detail":"bar"},"result":{"strVal":"baz","intVal":42}}`, string(data))
+	assert.JSONEq(t, `{"error":{"title":"foo","detail":"bar"},"strVal":"baz","intVal":42}`, string(data))
 }
 
 func TestErrorAndResultUnmarshal(t *testing.T) {
 	t.Parallel()
-	data := []byte(`{"error":{"title":"foo","detail":"bar"},"result":{"strVal":"baz","intVal":42}}`)
+	data := []byte(`{"error":{"title":"foo","detail":"bar"},"strVal":"baz","intVal":42}`)
 	var v ErrorAndResult[testStruct]
 	err := json.Unmarshal(data, &v)
 	require.NoError(t, err)
