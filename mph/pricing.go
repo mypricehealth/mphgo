@@ -8,6 +8,19 @@ import (
 	"github.com/mypricehealth/mphgo/set"
 )
 
+const (
+	editErrorTitle        = "claim edits failed"
+	fatalEditErrorTitle   = "fatal edit error"
+	editErrorDetail       = "see editDetail for more information"
+	PriceErrorTitle       = "pricing not available"
+	SyntheticPricerResult = "Processed via synthetic Medicare"
+)
+
+var (
+	ErrorEditSeeDetail = &ResponseError{Title: editErrorTitle, Detail: editErrorDetail}
+	ErrorEditFatal     = &ResponseError{Title: fatalEditErrorTitle, Detail: "claim must be returned to provider for resolution"}
+)
+
 type ClaimRepricingCode string
 type LineRepricingCode string
 type HospitalType string
@@ -113,31 +126,69 @@ const (
 	MedicareSourceSynthetic              MedicareSource = "Synthetic Medicare"
 )
 
-// Pricing contains the results of a pricing request
+// Pricing contains the results of a pricing request.
 type Pricing struct {
-	ClaimID               string                `json:"claimID,omitzero"`               // The unique identifier for the claim (copied from input)
-	MedicareAmount        float64               `json:"medicareAmount,omitzero"`        // The amount Medicare would pay for the service
-	AllowedAmount         float64               `json:"allowedAmount,omitzero"`         // The allowed amount based on a contract or RBP pricing
-	MedicareRepricingCode ClaimRepricingCode    `json:"medicareRepricingCode,omitzero"` // Explains the methodology used to calculate Medicare (MED or IFO)
-	MedicareRepricingNote string                `json:"medicareRepricingNote,omitzero"` // Note explaining approach for pricing or reason for error
-	NetworkCode           string                `json:"networkCode,omitzero"`           // The network code used for pricing (is placed into HCP04)
-	AllowedRepricingCode  ClaimRepricingCode    `json:"allowedRepricingCode,omitzero"`  // Explains the methodology used to calculate allowed amount (CON, RBP, SCA, or IFO)
-	AllowedRepricingNote  string                `json:"allowedRepricingNote,omitzero"`  // Note explaining approach for pricing or reason for error
-	MedicareStdDev        float64               `json:"medicareStdDev,omitzero"`        // Standard deviation of the estimated Medicare amount (estimates service only)
-	MedicareSource        MedicareSource        `json:"medicareSource,omitzero"`        // Source of the Medicare amount (e.g. physician fee schedule, OPPS, etc.)
-	InpatientPriceDetail  InpatientPriceDetail  `json:"inpatientPriceDetail,omitzero"`  // Details about the inpatient pricing
-	OutpatientPriceDetail OutpatientPriceDetail `json:"outpatientPriceDetail,omitzero"` // Details about the outpatient pricing
-	ProviderDetail        ProviderDetail        `json:"providerDetail,omitzero"`        // The provider details used when pricing the claim
-	EditDetail            ClaimEdits            `json:"editDetail,omitzero"`            // Errors which cause the claim to be denied, rejected, suspended, or returned to the provider
-	PricerResult          string                `json:"pricerResult,omitzero"`          // Pricer return details
-	Services              []PricedService       `json:"services,omitzero"`              // Pricing for each service line on the claim
-	EditError             *ResponseError        `json:"error,omitzero"`                 // An error that occurred during some step of the pricing process
+	ClaimID               string                `json:"claimID,omitzero"               db:"claim_id"`                // The unique identifier for the claim (copied from input)
+	MedicareAmount        float64               `json:"medicareAmount,omitzero"        db:"medicare_amount"`         // The amount Medicare would pay for the service
+	AllowedAmount         float64               `json:"allowedAmount,omitzero"         db:"allowed_amount"`          // The allowed amount based on a contract or RBP pricing
+	MedicareRepricingCode ClaimRepricingCode    `json:"medicareRepricingCode,omitzero" db:"medicare_repricing_code"` // Explains the methodology used to calculate Medicare (MED or IFO)
+	MedicareRepricingNote string                `json:"medicareRepricingNote,omitzero" db:"medicare_repricing_note"` // Note explaining approach for pricing or reason for error
+	NetworkCode           string                `json:"networkCode,omitzero"           db:"network_code"`            // The network code used for pricing (is placed into HCP04)
+	AllowedRepricingCode  ClaimRepricingCode    `json:"allowedRepricingCode,omitzero"  db:"allowed_repricing_code"`  // Explains the methodology used to calculate allowed amount (CON, RBP, SCA, or IFO)
+	AllowedRepricingNote  string                `json:"allowedRepricingNote,omitzero"  db:"allowed_repricing_note"`  // Note explaining approach for pricing or reason for error
+	MedicareStdDev        float64               `json:"medicareStdDev,omitzero"        db:"medicare_std_dev"`        // Standard deviation of the estimated Medicare amount (estimates service only)
+	MedicareSource        MedicareSource        `json:"medicareSource,omitzero"        db:"medicare_source"`         // Source of the Medicare amount (e.g. physician fee schedule, OPPS, etc.)
+	InpatientPriceDetail  InpatientPriceDetail  `json:"inpatientPriceDetail,omitzero"  db:",inline"`                 // Details about the inpatient pricing
+	OutpatientPriceDetail OutpatientPriceDetail `json:"outpatientPriceDetail,omitzero" db:",inline"`                 // Details about the outpatient pricing
+	ProviderDetail        ProviderDetail        `json:"providerDetail,omitzero"        db:",inline"`                 // The provider details used when pricing the claim
+	EditDetail            *ClaimEdits           `json:"editDetail,omitzero"            db:",inline"`                 // Errors which cause the claim to be denied, rejected, suspended, or returned to the provider
+	PricerResult          string                `json:"pricerResult,omitzero"          db:"pricer_result"`           // Pricer return details
+	PriceConfig           PriceConfig           `json:"priceConfig,omitzero"           db:"-"`                       // The configuration used for pricing the claim
+	Services              []PricedService       `json:"services,omitzero,omitempty"    db:"services"`                // Pricing for each service line on the claim
+	EditError             *ResponseError        `json:"error,omitzero"                 db:",inline"`                 // An error that occurred during some step of the pricing process
+}
+
+func (p Pricing) IsEmpty() bool {
+	return p.ClaimID == "" && p.MedicareAmount == 0 && p.AllowedAmount == 0 && p.MedicareRepricingCode == "" && p.MedicareRepricingNote == "" && p.NetworkCode == "" &&
+		p.AllowedRepricingCode == "" && p.AllowedRepricingNote == "" && p.MedicareStdDev == 0 && p.MedicareSource == "" && p.InpatientPriceDetail.IsEmpty() &&
+		p.OutpatientPriceDetail.IsEmpty() && p.ProviderDetail.IsEmpty() && p.EditDetail.IsEmpty() &&
+		p.PricerResult == "" && len(p.Services) == 0 && p.EditError == nil
+}
+
+func (p Pricing) GetRepricingNote() string {
+	var buf strings.Builder
+	if p.AllowedRepricingNote != "" {
+		buf.WriteString(p.AllowedRepricingNote)
+	} else if p.MedicareRepricingNote != "" {
+		buf.WriteString(p.MedicareRepricingNote)
+	}
+	if edit := p.EditDetail; !edit.IsEmpty() {
+		if buf.Len() > 0 {
+			buf.WriteString(". ")
+		}
+		buf.WriteString(edit.GetMessage())
+	}
+	return buf.String()
+}
+
+func (p Pricing) GetEditMessages() []string {
+	if p.EditDetail == nil {
+		return nil
+	}
+	messages := set.NewOrderedSet[string]()
+	e := p.EditDetail
+	messages.AddSlices(e.ClaimRejectionReasons, e.ClaimDenialReasons, e.ClaimReturnToProviderReasons, e.ClaimSuspensionReasons, e.LineItemRejectionReasons, e.LineItemDenialReasons)
+	return messages.Items()
+}
+
+func (p Pricing) HasFatalError() bool {
+	return p.EditError != nil && p.EditError.Title == fatalEditErrorTitle
 }
 
 // PricedService contains the results of a pricing request for a single service line.
 type PricedService struct {
 	LineNumber                    string                  `json:"lineNumber,omitzero"                    db:"-"`                                  // Number of the service line item (copied from input)
-	ProviderDetail                ProviderDetail          `json:"providerDetail,omitzero"                 db:",inline"`                           // Provider Details used when pricing the service if different than the claim
+	ProviderDetail                *ProviderDetail         `json:"providerDetail,omitzero"                db:",inline"`                            // Provider Details used when pricing the service if different than the claim
 	MedicareAmount                float64                 `json:"medicareAmount,omitzero"                db:"medicare_amount"`                    // Amount Medicare would pay for the service
 	AllowedAmount                 float64                 `json:"allowedAmount,omitzero"                 db:"allowed_amount"`                     // Allowed amount based on a contract or RBP pricing
 	MedicareRepricingCode         LineRepricingCode       `json:"medicareRepricingCode,omitzero"         db:"medicare_repricing_code"`            // Explains the methodology used to calculate Medicare
@@ -145,7 +196,7 @@ type PricedService struct {
 	NetworkCode                   string                  `json:"networkCode,omitzero"                   db:"network_code"`                       // The network code used for pricing (is placed into HCP04)
 	AllowedRepricingCode          LineRepricingCode       `json:"allowedRepricingCode,omitzero"          db:"allowed_repricing_code"`             // Explains the methodology used to calculate allowed amount
 	AllowedRepricingNote          string                  `json:"allowedRepricingNote,omitzero"          db:"allowed_repricing_note"`             // Note explaining approach for pricing or reason for error
-	AllowedRepricingFormula       AllowedRepricingFormula `json:"allowedRepricingFormula,omitzero"        db:",inline"`                           // Formula used to calculate the allowed amount
+	AllowedRepricingFormula       AllowedRepricingFormula `json:"allowedRepricingFormula,omitzero"       db:",inline"`                            // Formula used to calculate the allowed amount
 	TechnicalComponentAmount      float64                 `json:"tcAmount,omitzero"                      db:"technical_component_amount"`         // Amount Medicare would pay for the technical component
 	ProfessionalComponentAmount   float64                 `json:"pcAmount,omitzero"                      db:"professional_component_amount"`      // Amount Medicare would pay for the professional component
 	MedicareStdDev                float64                 `json:"medicareStdDev,omitzero"                db:"medicare_std_dev"`                   // Standard deviation of the estimated Medicare amount (estimates service only)
@@ -162,7 +213,7 @@ type PricedService struct {
 	CompositeAdjustmentFlag       string                  `json:"compositeAdjustmentFlag,omitzero"       db:"composite_adjustment_flag"`          // Assists in composite APC determination (outpatient only)
 	HCPCSAPC                      string                  `json:"hcpcsAPC,omitzero"                      db:"hcpcs_apc"`                          // Ambulatory Payment Classification code of the line item HCPCS (outpatient only)
 	PaymentAPC                    string                  `json:"paymentAPC,omitzero"                    db:"payment_apc"`                        // Ambulatory Payment Classification code used for payment (outpatient only)
-	EditDetail                    LineEdits               `json:"editDetail,omitzero"                     db:",inline"`                           // Errors which cause the line item to be unable to be priced
+	EditDetail                    *LineEdits              `json:"editDetail,omitzero"                    db:",inline"`                            // Errors which cause the line item to be unable to be priced
 }
 
 type AllowedRepricingFormula struct {
@@ -226,18 +277,21 @@ func (o OutpatientPriceDetail) IsEmpty() bool {
 // Not all fields are returned with every pricing request. For example, the CMS Certification
 // Number (CCN) is only returned for facilities which have a CCN such as hospitals.
 type ProviderDetail struct {
-	CCN            string         `json:"ccn,omitzero"`            // CMS Certification Number for the facility
-	MAC            uint16         `json:"mac"`                     // Medicare Administrative Contractor number
-	Locality       uint8          `json:"locality"`                // Geographic locality number used for pricing
-	GeographicCBSA uint32         `json:"geographicCBSA,omitzero"` // Core-Based Statistical Area (CBSA) number for provider ZIP
-	StateCBSA      uint8          `json:"stateCBSA,omitzero"`      // State Core-Based Statistical Area (CBSA) number
-	RuralIndicator RuralIndicator `json:"ruralIndicator,omitzero"` // Indicates whether provider is Rural (R), Super Rural (B), or Urban (blank)
-	SpecialtyType  string         `json:"specialtyType,omitzero"`  // Medicare provider specialty type
-	HospitalType   HospitalType   `json:"hospitalType,omitzero"`   // Type of hospital
+	CCN                   string         `json:"ccn,omitzero"            db:"provider_ccn"`             // CMS Certification Number for the facility
+	MAC                   uint16         `json:"mac"                     db:"provider_mac"`             // Medicare Administrative Contractor number
+	Locality              uint8          `json:"locality"                db:"provider_locality"`        // Geographic locality number used for pricing
+	GeographicCBSA        uint32         `json:"geographicCBSA,omitzero" db:"provider_geographic_cbsa"` // Core-Based Statistical Area (CBSA) number for provider ZIP
+	StateCBSA             uint8          `json:"stateCBSA,omitzero"      db:"provider_state_cbsa"`      // State Core-Based Statistical Area (CBSA) number
+	RuralIndicator        RuralIndicator `json:"ruralIndicator,omitzero" db:"provider_rural_indicator"` // Indicates whether provider is Rural (R), Super Rural (B), or Urban (blank)
+	SpecialtyType         string         `json:"specialtyType,omitzero"  db:"provider_specialty_type"`  // Medicare provider specialty type
+	HospitalType          HospitalType   `json:"hospitalType,omitzero"   db:"provider_hospital_type"`   // Type of hospital
+	BilledToMedicareRatio float64        `json:"-"                       db:"-"`                        // used for synthetic Medicare. Internal use only
 }
 
-func (p ProviderDetail) IsEmpty() bool {
-	return p == ProviderDetail{}
+var empty ProviderDetail
+
+func (p *ProviderDetail) IsEmpty() bool {
+	return p == nil || *p == empty
 }
 
 // ClaimEdits contains errors which cause the claim to be denied, rejected, suspended, or returned to the provider.
