@@ -232,18 +232,23 @@ func (p Pricing) IsEmpty() bool {
 
 func (p Pricing) GetRepricingNote() string {
 	var buf strings.Builder
-	if p.AllowedRepricingNote != "" {
-		buf.WriteString(p.AllowedRepricingNote)
-	} else if p.MedicareRepricingNote != "" {
-		buf.WriteString(p.MedicareRepricingNote)
+	if p.EditError != nil && p.EditError.Title != fatalEditErrorTitle && p.EditError.Detail != editErrorDetail {
+		buf.WriteString(p.EditError.Detail)
 	}
-	if edit := p.EditDetail; !edit.IsEmpty() {
-		if buf.Len() > 0 {
-			buf.WriteString(". ")
-		}
-		buf.WriteString(edit.GetMessage())
+	addSeparatedMessage(&buf, p.EditDetail.GetMessage())
+	if p.AllowedRepricingNote != "" {
+		addSeparatedMessage(&buf, p.AllowedRepricingNote)
+	} else if p.MedicareRepricingNote != "" {
+		addSeparatedMessage(&buf, p.MedicareRepricingNote)
 	}
 	return buf.String()
+}
+
+func addSeparatedMessage(buf *strings.Builder, message string) {
+	if buf.Len() > 0 {
+		buf.WriteString(". ")
+	}
+	buf.WriteString(message)
 }
 
 func (p Pricing) GetEditMessages() []string {
@@ -305,16 +310,11 @@ func (a AllowedRepricingFormula) IsEmpty() bool {
 
 func (s PricedService) GetRepricingNote() string {
 	var buf strings.Builder
+	buf.WriteString(s.EditDetail.GetMessage())
 	if s.AllowedRepricingNote != "" {
-		buf.WriteString(s.AllowedRepricingNote)
+		addSeparatedMessage(&buf, s.AllowedRepricingNote)
 	} else if s.MedicareRepricingNote != "" {
-		buf.WriteString(s.MedicareRepricingNote)
-	}
-	if edit := s.EditDetail; !edit.IsEmpty() {
-		if buf.Len() > 0 {
-			buf.WriteString(". ")
-		}
-		buf.WriteString(edit.GetMessage())
+		addSeparatedMessage(&buf, s.MedicareRepricingNote)
 	}
 	return buf.String()
 }
