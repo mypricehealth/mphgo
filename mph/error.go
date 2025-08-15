@@ -67,10 +67,6 @@ func (e *Error) UnmarshalJSON(data []byte) error {
 var _ json.Marshaler = &Error{}
 var _ json.Unmarshaler = &Error{}
 
-func (e *Error) Is(err error) bool {
-	return (e == nil && err == nil) || e != nil && e.Detail != nil && errors.Is(e.Detail, err)
-}
-
 func (e *Error) ToResponseError() *ResponseError {
 	if e == nil || e.Detail == nil || (e.Title == "" && e.Detail.Error() == "") {
 		return nil
