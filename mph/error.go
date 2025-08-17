@@ -122,6 +122,10 @@ func (r *ResponseError) IsEmpty() bool {
 	return r == nil || (r.Title == "" && r.Detail == "")
 }
 
+func (e *ResponseError) HasSpecificMessage() bool {
+	return e != nil && e.Title != fatalEditErrorTitle && e.Detail != editErrorDetail
+}
+
 func (r *ResponseError) ToClientError() *Error {
 	if r == nil {
 		return nil

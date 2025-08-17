@@ -232,7 +232,7 @@ func (p Pricing) IsEmpty() bool {
 
 func (p Pricing) GetRepricingNote() string {
 	var buf strings.Builder
-	if p.EditError != nil && p.EditError.Title != fatalEditErrorTitle && p.EditError.Detail != editErrorDetail {
+	if p.EditError.HasSpecificMessage() {
 		buf.WriteString(p.EditError.Detail)
 	}
 	addSeparatedMessage(&buf, p.EditDetail.GetMessage())
