@@ -22,7 +22,7 @@ type Pricer interface {
 type PriceConfig struct {
 	ContractRuleset                           string  `json:"contractRuleset,omitzero"`                           // set to the name of the ruleset to use for contract pricing
 	PriceZeroBilled                           bool    `json:"priceZeroBilled,omitzero"`                           // set to true to price claims with zero billed amounts (default is false)
-	IsCommercial                              bool    `json:"isCommercial,omitzero"`                              // set to true to use commercial code crosswalks from commercial codes Medicare won't pay for to substitute codes they do pay for (e.g. 99201 to G0463)
+	IsCommercial                              bool    `json:"isCommercial,omitzero"`                              // set to true to crosswalk codes from commercial codes Medicare won't pay for to substitute codes they do pay for (e.g. 99201 to G0463)
 	DisableCostBasedReimbursement             bool    `json:"disableCostBasedReimbursement,omitzero"`             // set to true to disable cost-based reimbursement for line items paid as a percent of cost
 	UseCommercialSyntheticForNotAllowed       bool    `json:"useCommercialSyntheticForNotAllowed,omitzero"`       // set to true to use a synthetic Medicare price for line-items that are not allowed by Medicare
 	UseDRGFromGrouper                         bool    `json:"useDRGFromGrouper,omitzero"`                         // set to true to always use the DRG from the inpatient grouper
