@@ -208,7 +208,7 @@ type Pricing struct {
 	AllowedAmount         float64               `json:"allowedAmount,omitzero"         db:"allowed_amount"`          // The allowed amount based on a contract or RBP pricing
 	MedicareRepricingCode ClaimRepricingCode    `json:"medicareRepricingCode,omitzero" db:"medicare_repricing_code"` // Explains the methodology used to calculate Medicare (MED or IFO)
 	MedicareRepricingNote string                `json:"medicareRepricingNote,omitzero" db:"medicare_repricing_note"` // Note explaining approach for pricing or reason for error
-	NetworkCode           string                `json:"networkCode,omitzero"           db:"network_code"`            // The network code used for pricing (is placed into HCP04)
+	NetworkCode           string                `json:"networkCode,omitzero"           db:"network_code"`            // Code describing the network used for allowed amount pricing
 	AllowedRepricingCode  ClaimRepricingCode    `json:"allowedRepricingCode,omitzero"  db:"allowed_repricing_code"`  // Explains the methodology used to calculate allowed amount (CON, RBP, SCA, or IFO)
 	AllowedRepricingNote  string                `json:"allowedRepricingNote,omitzero"  db:"allowed_repricing_note"`  // Note explaining approach for pricing or reason for error
 	MedicareStdDev        float64               `json:"medicareStdDev,omitzero"        db:"medicare_std_dev"`        // Standard deviation of the estimated Medicare amount (estimates service only)
@@ -273,7 +273,7 @@ type PricedService struct {
 	AllowedAmount                 float64                 `json:"allowedAmount,omitzero"                 db:"allowed_amount"`                     // Allowed amount based on a contract or RBP pricing
 	MedicareRepricingCode         LineRepricingCode       `json:"medicareRepricingCode,omitzero"         db:"medicare_repricing_code"`            // Explains the methodology used to calculate Medicare
 	MedicareRepricingNote         string                  `json:"medicareRepricingNote,omitzero"         db:"medicare_repricing_note"`            // Note explaining approach for pricing or reason for error
-	NetworkCode                   string                  `json:"networkCode,omitzero"                   db:"network_code"`                       // The network code used for pricing (is placed into HCP04)
+	NetworkCode                   string                  `json:"networkCode,omitzero"                   db:"network_code"`                       // Code describing the network used for allowed amount pricing
 	AllowedRepricingCode          LineRepricingCode       `json:"allowedRepricingCode,omitzero"          db:"allowed_repricing_code"`             // Explains the methodology used to calculate allowed amount
 	AllowedRepricingNote          string                  `json:"allowedRepricingNote,omitzero"          db:"allowed_repricing_note"`             // Note explaining approach for pricing or reason for error
 	AllowedRepricingFormula       AllowedRepricingFormula `json:"allowedRepricingFormula,omitzero"       db:",inline"`                            // Formula used to calculate the allowed amount
