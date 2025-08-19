@@ -2,6 +2,7 @@ package mph
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"braces.dev/errtrace"
@@ -26,6 +27,8 @@ type LineRepricingCode string
 type HospitalType string
 type RuralIndicator string
 type MedicareSource string
+type Step string
+type Status string
 
 var _ json.Unmarshaler = new(RuralIndicator)
 
@@ -126,14 +129,86 @@ const (
 	MedicareSourceSynthetic              MedicareSource = "Synthetic Medicare"
 )
 
-// Pricing contains the results of a pricing request.
+const (
+	stepNew                  Step = "New"
+	stepReceived             Step = "Received"
+	StepPending              Step = "Pending"
+	stepHeld                 Step = "Held"
+	stepError                Step = "Error"
+	stepInputValidated       Step = "Input Validated"
+	stepProviderMatched      Step = "Provider Matched"
+	stepEditComplete         Step = "Edit Complete"
+	stepMedicarePriced       Step = "Medicare Priced"
+	stepPrimaryAllowedPriced Step = "Primary Allowed Priced"
+	stepNetworkAllowedPriced Step = "Network Allowed Priced"
+	stepOutOfNetwork         Step = "Out of Network"
+	stepRequestMoreInfo      Step = "Request More Info"
+	stepPriced               Step = "Priced"
+	stepReturned             Step = "Returned"
+)
+
+const (
+	statusPendingClaimInputValidation        Status = "Claim Input Validation"
+	statusPendingClaimEditReview             Status = "Claim Edit Review"
+	statusPendingProviderMatching            Status = "Provider Matching"
+	statusPendingMedicareReview              Status = "Medicare Review"
+	statusPendingMedicareCalculation         Status = "Medicare Calculation"
+	statusPendingPrimaryAllowedReview        Status = "Primary Allowed Review"
+	statusPendingNetworkAllowedReview        Status = "Network Allowed Review"
+	statusPendingPrimaryAllowedDetermination Status = "Primary Allowed Determination"
+	statusPendingNetworkAllowedDetermination Status = "Network Allowed Determination"
+)
+
+var (
+	StatusNew                                = ClaimStatus{Step: stepNew}                                                       // created by TPA. We use the transaction date as a proxy for this date
+	StatusReceived                           = ClaimStatus{Step: stepReceived}                                                  // received and ready for processing. This is modified date of the file we get from SFTP
+	StatusHeld                               = ClaimStatus{Step: stepHeld}                                                      // held for various reasons
+	StatusError                              = ClaimStatus{Step: stepError}                                                     // claim encountered an error during processing
+	StatusInputValidated                     = ClaimStatus{Step: stepInputValidated}                                            // claim input has been validated
+	StatusProviderMatched                    = ClaimStatus{Step: stepProviderMatched}                                           // providers in the claim have been matched to the provider system of record
+	StatusEditComplete                       = ClaimStatus{Step: stepEditComplete}                                              // claim has been edited and is ready for pricing
+	StatusMedicarePriced                     = ClaimStatus{Step: stepMedicarePriced}                                            // claim has been priced according to Medicare
+	StatusPrimaryAllowedPriced               = ClaimStatus{Step: stepPrimaryAllowedPriced}                                      // claim has been priced according to the primary allowed amount (e.g. contract, RBP, etc.)
+	StatusNetworkAllowedPriced               = ClaimStatus{Step: stepNetworkAllowedPriced}                                      // claim has been priced according to the allowed amount of the network
+	StatusOutOfNetwork                       = ClaimStatus{Step: stepOutOfNetwork}                                              // is out of network
+	StatusRequestMoreInfo                    = ClaimStatus{Step: stepRequestMoreInfo}                                           // return claim to trading partner for more information to enable correct processing
+	StatusPriced                             = ClaimStatus{Step: stepPriced}                                                    // done pricing
+	StatusReturned                           = ClaimStatus{Step: stepReturned}                                                  // returned to TPA
+	StatusPendingClaimInputValidation        = ClaimStatus{Step: StepPending, Status: statusPendingClaimInputValidation}        // waiting for claim input validation
+	StatusPendingClaimEditReview             = ClaimStatus{Step: StepPending, Status: statusPendingClaimEditReview}             // waiting for claim edit review
+	StatusPendingProviderMatching            = ClaimStatus{Step: StepPending, Status: statusPendingProviderMatching}            // waiting for provider matching
+	StatusPendingMedicareReview              = ClaimStatus{Step: StepPending, Status: statusPendingMedicareReview}              // waiting for Medicare amount review
+	StatusPendingMedicareCalculation         = ClaimStatus{Step: StepPending, Status: statusPendingMedicareCalculation}         // waiting for Medicare amount calculation
+	StatusPendingPrimaryAllowedReview        = ClaimStatus{Step: StepPending, Status: statusPendingPrimaryAllowedReview}        // waiting for primary allowed amount review
+	StatusPendingNetworkAllowedReview        = ClaimStatus{Step: StepPending, Status: statusPendingNetworkAllowedReview}        // waiting for network allowed amount review
+	StatusPendingPrimaryAllowedDetermination = ClaimStatus{Step: StepPending, Status: statusPendingPrimaryAllowedDetermination} // waiting for the primary allowed amount (e.g. contract, RBP rate, etc.) to be determined
+	StatusPendingNetworkAllowedDetermination = ClaimStatus{Step: StepPending, Status: statusPendingNetworkAllowedDetermination} // waiting for allowed amount from the network
+)
+
+type ClaimStatus struct {
+	Step   Step   `json:"step,omitempty"`
+	Status Status `json:"status,omitempty"`
+}
+
+func (s ClaimStatus) IsEmpty() bool {
+	return s.Step == "" && s.Status == ""
+}
+
+func (s ClaimStatus) String() string {
+	if s.Status != "" {
+		return fmt.Sprintf("%s %s", s.Step, s.Status)
+	}
+	return string(s.Step)
+}
+
+// Pricing contains the results of a pricing request
 type Pricing struct {
 	ClaimID               string                `json:"claimID,omitzero"               db:"claim_id"`                // The unique identifier for the claim (copied from input)
 	MedicareAmount        float64               `json:"medicareAmount,omitzero"        db:"medicare_amount"`         // The amount Medicare would pay for the service
 	AllowedAmount         float64               `json:"allowedAmount,omitzero"         db:"allowed_amount"`          // The allowed amount based on a contract or RBP pricing
 	MedicareRepricingCode ClaimRepricingCode    `json:"medicareRepricingCode,omitzero" db:"medicare_repricing_code"` // Explains the methodology used to calculate Medicare (MED or IFO)
 	MedicareRepricingNote string                `json:"medicareRepricingNote,omitzero" db:"medicare_repricing_note"` // Note explaining approach for pricing or reason for error
-	NetworkCode           string                `json:"networkCode,omitzero"           db:"network_code"`            // The network code used for pricing (is placed into HCP04)
+	NetworkCode           string                `json:"networkCode,omitzero"           db:"network_code"`            // Code describing the network used for allowed amount pricing
 	AllowedRepricingCode  ClaimRepricingCode    `json:"allowedRepricingCode,omitzero"  db:"allowed_repricing_code"`  // Explains the methodology used to calculate allowed amount (CON, RBP, SCA, or IFO)
 	AllowedRepricingNote  string                `json:"allowedRepricingNote,omitzero"  db:"allowed_repricing_note"`  // Note explaining approach for pricing or reason for error
 	MedicareStdDev        float64               `json:"medicareStdDev,omitzero"        db:"medicare_std_dev"`        // Standard deviation of the estimated Medicare amount (estimates service only)
@@ -145,7 +220,7 @@ type Pricing struct {
 	PricerResult          string                `json:"pricerResult,omitzero"          db:"pricer_result"`           // Pricer return details
 	PriceConfig           PriceConfig           `json:"priceConfig,omitzero"           db:"-"`                       // The configuration used for pricing the claim
 	Services              []PricedService       `json:"services,omitzero,omitempty"    db:"services"`                // Pricing for each service line on the claim
-	EditError             *ResponseError        `json:"error,omitzero"                 db:",inline"`                 // An error that occurred during some step of the pricing process
+	EditError             *ResponseError        `json:"editError,omitzero"             db:"edit_error"`              // An error that occurred during some step of the pricing process
 }
 
 func (p Pricing) IsEmpty() bool {
@@ -157,18 +232,23 @@ func (p Pricing) IsEmpty() bool {
 
 func (p Pricing) GetRepricingNote() string {
 	var buf strings.Builder
-	if p.AllowedRepricingNote != "" {
-		buf.WriteString(p.AllowedRepricingNote)
-	} else if p.MedicareRepricingNote != "" {
-		buf.WriteString(p.MedicareRepricingNote)
+	if p.EditError.HasSpecificMessage() {
+		buf.WriteString(p.EditError.Detail)
 	}
-	if edit := p.EditDetail; !edit.IsEmpty() {
-		if buf.Len() > 0 {
-			buf.WriteString(". ")
-		}
-		buf.WriteString(edit.GetMessage())
+	addSeparatedMessage(&buf, p.EditDetail.GetMessage())
+	if p.AllowedRepricingNote != "" {
+		addSeparatedMessage(&buf, p.AllowedRepricingNote)
+	} else if p.MedicareRepricingNote != "" {
+		addSeparatedMessage(&buf, p.MedicareRepricingNote)
 	}
 	return buf.String()
+}
+
+func addSeparatedMessage(buf *strings.Builder, message string) {
+	if buf.Len() > 0 {
+		buf.WriteString(". ")
+	}
+	buf.WriteString(message)
 }
 
 func (p Pricing) GetEditMessages() []string {
@@ -193,7 +273,7 @@ type PricedService struct {
 	AllowedAmount                 float64                 `json:"allowedAmount,omitzero"                 db:"allowed_amount"`                     // Allowed amount based on a contract or RBP pricing
 	MedicareRepricingCode         LineRepricingCode       `json:"medicareRepricingCode,omitzero"         db:"medicare_repricing_code"`            // Explains the methodology used to calculate Medicare
 	MedicareRepricingNote         string                  `json:"medicareRepricingNote,omitzero"         db:"medicare_repricing_note"`            // Note explaining approach for pricing or reason for error
-	NetworkCode                   string                  `json:"networkCode,omitzero"                   db:"network_code"`                       // The network code used for pricing (is placed into HCP04)
+	NetworkCode                   string                  `json:"networkCode,omitzero"                   db:"network_code"`                       // Code describing the network used for allowed amount pricing
 	AllowedRepricingCode          LineRepricingCode       `json:"allowedRepricingCode,omitzero"          db:"allowed_repricing_code"`             // Explains the methodology used to calculate allowed amount
 	AllowedRepricingNote          string                  `json:"allowedRepricingNote,omitzero"          db:"allowed_repricing_note"`             // Note explaining approach for pricing or reason for error
 	AllowedRepricingFormula       AllowedRepricingFormula `json:"allowedRepricingFormula,omitzero"       db:",inline"`                            // Formula used to calculate the allowed amount
@@ -219,21 +299,22 @@ type PricedService struct {
 type AllowedRepricingFormula struct {
 	MedicarePercent float64 `json:"medicarePercent,omitzero" db:"allowed_repricing_formula_medicare_percent"` // Percentage of the Medicare amount used to calculate the allowed amount
 	BilledPercent   float64 `json:"billedPercent,omitzero"   db:"allowed_repricing_formula_billed_percent"`   // Percentage of the billed amount used to calculate the allowed amount
+	FeeSchedule     float64 `json:"feeSchedule,omitzero"     db:"allowed_repricing_formula_fee_schedule"`     // Fee schedule amount used as the allowed amount
 	FixedAmount     float64 `json:"fixedAmount,omitzero"     db:"allowed_repricing_formula_fixed_amount"`     // Fixed amount used as the allowed amount
+	PerDiem         float64 `json:"perDiem,omitzero"         db:"allowed_repricing_formula_per_diem"`         // Per diem rate used to calculate the allowed amount
+}
+
+func (a AllowedRepricingFormula) IsEmpty() bool {
+	return a == AllowedRepricingFormula{}
 }
 
 func (s PricedService) GetRepricingNote() string {
 	var buf strings.Builder
+	buf.WriteString(s.EditDetail.GetMessage())
 	if s.AllowedRepricingNote != "" {
-		buf.WriteString(s.AllowedRepricingNote)
+		addSeparatedMessage(&buf, s.AllowedRepricingNote)
 	} else if s.MedicareRepricingNote != "" {
-		buf.WriteString(s.MedicareRepricingNote)
-	}
-	if edit := s.EditDetail; !edit.IsEmpty() {
-		if buf.Len() > 0 {
-			buf.WriteString(". ")
-		}
-		buf.WriteString(edit.GetMessage())
+		addSeparatedMessage(&buf, s.MedicareRepricingNote)
 	}
 	return buf.String()
 }
