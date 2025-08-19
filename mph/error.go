@@ -1,10 +1,13 @@
 package mph
 
 import (
+	"database/sql"
+	"database/sql/driver"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"braces.dev/errtrace"
 )
@@ -82,10 +85,12 @@ func (e *Error) ToResponseError() *ResponseError {
 
 type ResponseError struct {
 	Title  string `json:"title,omitempty"  db:"-"`
-	Detail string `json:"detail,omitempty" db:"error_detail"`
+	Detail string `json:"detail,omitempty" db:"-"`
 }
 
 var _ error = &ResponseError{}
+var _ sql.Scanner = &ResponseError{}
+var _ driver.Valuer = ResponseError{}
 
 func NewResponseError(title string, detail error) *ResponseError {
 	if detail == nil || detail.Error() == "" {
@@ -99,10 +104,22 @@ func NewResponseErrorText(title, detail string) *ResponseError {
 }
 
 func (r *ResponseError) Error() string {
-	if r == nil {
+	if r == nil || r.Detail == "" && r.Title == "" {
 		return ""
 	}
 	return fmt.Sprintf("%s: %s", r.Title, r.Detail)
+}
+
+func (r ResponseError) String() string {
+	return r.Error()
+}
+
+func (r *ResponseError) IsEmpty() bool {
+	return r == nil || (r.Title == "" && r.Detail == "")
+}
+
+func (e *ResponseError) HasSpecificMessage() bool {
+	return e != nil && e.Title != fatalEditErrorTitle && e.Detail != editErrorDetail
 }
 
 func (r *ResponseError) ToClientError() *Error {
@@ -110,6 +127,28 @@ func (r *ResponseError) ToClientError() *Error {
 		return nil
 	}
 	return ClientError(r.Title, errtrace.Errorf("%s", r.Detail))
+}
+
+func (r *ResponseError) Scan(value any) error {
+	errMsg, ok := value.(string)
+	if !ok {
+		return errtrace.Errorf("cannot scan %T into ResponseError", value)
+	}
+	if errMsg == "" || value == nil {
+		return nil
+	}
+
+	titleIndex := strings.Index(errMsg, ": ")
+	if titleIndex == -1 {
+		return errtrace.Errorf("invalid ResponseError format")
+	}
+	r.Title = errMsg[:titleIndex]
+	r.Detail = errMsg[titleIndex+2:]
+	return nil
+}
+
+func (d ResponseError) Value() (driver.Value, error) {
+	return d.Error(), nil
 }
 
 func NewError(title string, err error, errorCode int) *Error {
