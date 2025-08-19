@@ -41,14 +41,14 @@ func TestGetClaimRepricingNote(t *testing.T) {
 func TestServiceGetRepricingNote(t *testing.T) {
 	t.Parallel()
 	s := PricedService{
-		MedicareRepricingNote: "test",
+		MedicareRepricingNote: "Medicare note",
 		EditDetail:            &LineEdits{},
 	}
-	assert.Equal(t, "test", s.GetRepricingNote())
-	s.AllowedRepricingNote = "test2"
-	assert.Equal(t, "test2", s.GetRepricingNote())
-	s.EditDetail.ProcedureEdits = []string{"test3"}
-	assert.Equal(t, "test2. test3", s.GetRepricingNote())
+	assert.Equal(t, "Medicare note", s.GetRepricingNote())
+	s.AllowedRepricingNote = "allowed note"
+	assert.Equal(t, "allowed note", s.GetRepricingNote())
+	s.EditDetail.ProcedureEdits = []string{"edit"}
+	assert.Equal(t, "edit. allowed note", s.GetRepricingNote())
 }
 
 func TestInpatientPriceDetailIsEmpty(t *testing.T) {

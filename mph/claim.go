@@ -60,14 +60,14 @@ type Claim struct {
 	DischargeStatus    string           `json:"dischargeStatus,omitzero"`    // Status of the patient at time of discharge (from CL103)
 	AdmitDiagnosis     string           `json:"admitDiagnosis,omitzero"`     // ICD diagnosis at the time the patient was admitted (from HI ABJ or BJ)
 	PrincipalDiagnosis *Diagnosis       `json:"principalDiagnosis,omitzero"` // Principal ICD diagnosis for the patient (from HI ABK or BK)
-	OtherDiagnoses     []Diagnosis      `json:"otherDiagnoses,omitzero"`     // Other ICD diagnoses that apply to the patient (from HI ABF or BF)
+	OtherDiagnoses     []Diagnosis      `json:"otherDiagnoses,omitempty"`    // Other ICD diagnoses that apply to the patient (from HI ABF or BF)
 	PrincipalProcedure string           `json:"principalProcedure,omitzero"` // Principal ICD procedure for the patient (from HI BBR or BR)
-	OtherProcedures    []string         `json:"otherProcedures,omitzero"`    // Other ICD procedures that apply to the patient (from HI BBQ or BQ)
-	ConditionCodes     []string         `json:"conditionCodes,omitzero"`     // Special conditions that may affect payment or other processing (from HI BG)
-	ValueCodes         []ValueCode      `json:"valueCodes,omitzero"`         // Numeric values related to the patient or claim (HI BE)
-	OccurrenceCodes    []string         `json:"occurrenceCodes,omitzero"`    // Date related occurrences related to the patient or claim (from HI BH)
+	OtherProcedures    []string         `json:"otherProcedures,omitempty"`   // Other ICD procedures that apply to the patient (from HI BBQ or BQ)
+	ConditionCodes     []string         `json:"conditionCodes,omitempty"`    // Special conditions that may affect payment or other processing (from HI BG)
+	ValueCodes         []ValueCode      `json:"valueCodes,omitempty"`        // Numeric values related to the patient or claim (HI BE)
+	OccurrenceCodes    []string         `json:"occurrenceCodes,omitempty"`   // Date related occurrences related to the patient or claim (from HI BH)
 	DRG                string           `json:"drg,omitzero"`                // Diagnosis Related Group for inpatient services (from HI DR)
-	Services           []Service        `json:"services,omitzero"`           // One or more services provided to the patient (from LX loop)
+	Services           []Service        `json:"services,omitempty"`          // One or more services provided to the patient (from LX loop)
 }
 
 // Provider represents the service provider that rendered healthcare services on behalf of the patient.
@@ -75,6 +75,7 @@ type Claim struct {
 // at the service level in the 2400 loop.
 type Provider struct {
 	NPI                      string   `json:"npi,omitzero"`                      // National Provider Identifier of the provider (from NM109, required)
+	CCN                      string   `json:"ccn,omitzero"`                      // CMS Certification Number (optional)
 	ProviderTaxID            string   `json:"providerTaxID,omitzero"`            // Tax ID of the provider (from REF highly recommended)
 	ProviderPhones           []string `json:"providerPhones,omitzero"`           // Phone numbers of the provider (from PER, optional)
 	ProviderFaxes            []string `json:"providerFaxes,omitzero"`            // Fax numbers of the provider (from PER, optional)
@@ -104,10 +105,9 @@ type ValueCode struct {
 
 type Service struct {
 	Provider                    // Additional provider information specific to this service item
-	LineNumber         string   `json:"lineNumber,omitzero"`    // Unique line number for the service item (from LX01)
-	RevCode            string   `json:"revCode,omitzero"`       // Revenue code (from SV2_01)
-	ProcedureCode      string   `json:"procedureCode,omitzero"` // Procedure code (from SV101_02 / SV202_02)
-	HIPPSCode          string   `json:"hippsCode,omitzero"`
+	LineNumber         string   `json:"lineNumber,omitzero"`         // Unique line number for the service item (from LX01)
+	RevCode            string   `json:"revCode,omitzero"`            // Revenue code (from SV2_01)
+	ProcedureCode      string   `json:"procedureCode,omitzero"`      // Procedure code (from SV101_02 / SV202_02)
 	ProcedureModifiers []string `json:"procedureModifiers,omitzero"` // Procedure modifiers (from SV101_03, 4, 5, 6 / SV202_03, 4, 5, 6)
 	DrugCode           string   `json:"drugCode,omitzero"`           // National Drug Code (from LIN03)
 	DateFrom           Date     `json:"dateFrom,omitzero"`           // Begin date of service (from DTP 472)
