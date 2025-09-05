@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"braces.dev/errtrace"
 	"github.com/mypricehealth/mphgo/mph"
 	"github.com/stretchr/testify/assert"
 )
@@ -50,11 +51,11 @@ func readJSON(filename string) (mph.Claim, error) {
 	var c mph.Claim
 	f, err := os.Open(filename)
 	if err != nil {
-		return c, err
+		return c, errtrace.Wrap(err)
 	}
 
 	err = json.NewDecoder(f).Decode(&c)
-	return c, err
+	return c, errtrace.Wrap(err)
 }
 
 func TestClientConstructingStructs(t *testing.T) {
