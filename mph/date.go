@@ -3,6 +3,8 @@ package mph
 import (
 	"encoding/json"
 	"time"
+
+	"braces.dev/errtrace"
 )
 
 // Date is a custom type for representing dates in the format YYYYMMDD
@@ -48,5 +50,5 @@ func (d *Date) UnmarshalJSON(data []byte) error {
 
 	t, err := time.Parse(`"`+dateFormat+`"`, string(data))
 	*d = Date{t}
-	return err
+	return errtrace.Wrap(err)
 }
