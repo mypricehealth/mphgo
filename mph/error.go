@@ -92,6 +92,18 @@ var _ error = &ResponseError{}
 var _ sql.Scanner = &ResponseError{}
 var _ driver.Valuer = ResponseError{}
 
+func ParseResponseError(err string) *ResponseError {
+	if err == "" {
+		return nil
+	}
+
+	titleIndex := strings.Index(err, ": ")
+	if titleIndex == -1 {
+		return NewResponseErrorText("Error", err)
+	}
+	return NewResponseErrorText(err[:titleIndex], err[titleIndex+2:])
+}
+
 func NewResponseError(title string, detail error) *ResponseError {
 	if detail == nil || detail.Error() == "" {
 		return nil
