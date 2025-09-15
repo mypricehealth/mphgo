@@ -203,7 +203,7 @@ func (s ClaimStatus) String() string {
 
 // Pricing contains the results of a pricing request
 type Pricing struct {
-	ClaimID               string                `json:"claimID,omitzero"               db:"claim_id"`                // The unique identifier for the claim (copied from input)
+	ClaimID               string                `json:"claimID,omitzero"               db:"-"`                       // The unique identifier for the claim (copied from input)
 	MedicareAmount        float64               `json:"medicareAmount,omitzero"        db:"medicare_amount"`         // The amount Medicare would pay for the service
 	AllowedAmount         float64               `json:"allowedAmount,omitzero"         db:"allowed_amount"`          // The allowed amount based on a contract or RBP pricing
 	MedicareRepricingCode ClaimRepricingCode    `json:"medicareRepricingCode,omitzero" db:"medicare_repricing_code"` // Explains the methodology used to calculate Medicare (MED or IFO)
