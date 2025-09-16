@@ -244,6 +244,60 @@ func (p Pricing) GetRepricingNote() string {
 	return buf.String()
 }
 
+var _ json.Unmarshaler = (*Pricing)(nil)
+
+func (m *Pricing) UnmarshalJSON(data []byte) error {
+	v := struct {
+		ClaimID               string                `json:"claimID,omitzero"`
+		MedicareAmount        float64               `json:"medicareAmount,omitzero"`
+		AllowedAmount         float64               `json:"allowedAmount,omitzero"`
+		MedicareRepricingCode ClaimRepricingCode    `json:"medicareRepricingCode,omitzero"`
+		MedicareRepricingNote string                `json:"medicareRepricingNote,omitzero"`
+		NetworkCode           string                `json:"networkCode,omitzero"`
+		AllowedRepricingCode  ClaimRepricingCode    `json:"allowedRepricingCode,omitzero"`
+		AllowedRepricingNote  string                `json:"allowedRepricingNote,omitzero"`
+		MedicareStdDev        float64               `json:"medicareStdDev,omitzero"`
+		MedicareSource        MedicareSource        `json:"medicareSource,omitzero"`
+		InpatientPriceDetail  InpatientPriceDetail  `json:"inpatientPriceDetail,omitzero"`
+		OutpatientPriceDetail OutpatientPriceDetail `json:"outpatientPriceDetail,omitzero"`
+		ProviderDetail        ProviderDetail        `json:"providerDetail,omitzero"`
+		EditDetail            *ClaimEdits           `json:"editDetail,omitzero"`
+		PricerResult          string                `json:"pricerResult,omitzero"`
+		PriceConfig           PriceConfig           `json:"priceConfig,omitzero"`
+		Services              []PricedService       `json:"services,omitzero,omitempty"`
+		EditError             *ResponseError        `json:"editError,omitzero"`
+		EditError2            *ResponseError        `json:"error,omitzero"` // enable backward compatibility with old name
+	}{}
+	err := json.Unmarshal(data, &v)
+	if err != nil {
+		return errtrace.Wrap(err)
+	}
+	if !v.EditError2.IsEmpty() && v.EditError.IsEmpty() {
+		v.EditError = v.EditError2
+	}
+	*m = Pricing{
+		ClaimID:               v.ClaimID,
+		MedicareAmount:        v.MedicareAmount,
+		AllowedAmount:         v.AllowedAmount,
+		MedicareRepricingCode: v.MedicareRepricingCode,
+		MedicareRepricingNote: v.MedicareRepricingNote,
+		NetworkCode:           v.NetworkCode,
+		AllowedRepricingCode:  v.AllowedRepricingCode,
+		AllowedRepricingNote:  v.AllowedRepricingNote,
+		MedicareStdDev:        v.MedicareStdDev,
+		MedicareSource:        v.MedicareSource,
+		InpatientPriceDetail:  v.InpatientPriceDetail,
+		OutpatientPriceDetail: v.OutpatientPriceDetail,
+		ProviderDetail:        v.ProviderDetail,
+		EditDetail:            v.EditDetail,
+		PricerResult:          v.PricerResult,
+		PriceConfig:           v.PriceConfig,
+		Services:              v.Services,
+		EditError:             v.EditError,
+	}
+	return nil
+}
+
 func addSeparatedMessage(buf *strings.Builder, message string) {
 	if buf.Len() > 0 {
 		buf.WriteString(". ")
