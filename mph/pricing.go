@@ -111,6 +111,7 @@ const (
 	MedicareSourceAnesthesia             MedicareSource = "AnesthesiaFS"
 	MedicareSourceASC                    MedicareSource = "ASC pricer"
 	MedicareSourceCriticalAccessHospital MedicareSource = "CAH pricer"
+	MedicareSourceDME                    MedicareSource = "DMEFS"
 	MedicareSourceDrugs                  MedicareSource = "DrugsFS"
 	MedicareSourceEditError              MedicareSource = "Claim editor"
 	MedicareSourceEstimateByCodeOnly     MedicareSource = "CodeOnly"
