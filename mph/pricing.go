@@ -67,6 +67,7 @@ const (
 	ClaimRepricingCodeCoralRBPPricing     ClaimRepricingCode = "CRBP"
 	ClaimRepricingCodeSingleCaseAgreement ClaimRepricingCode = "SCA"
 	ClaimRepricingCodeNeedsMoreInfo       ClaimRepricingCode = "IFO"
+	ClaimRepricingCodeOutOfNetwork        ClaimRepricingCode = "OON"
 
 	// line-level Medicare repricing codes.
 
