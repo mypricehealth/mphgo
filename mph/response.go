@@ -1,9 +1,8 @@
 package mph
 
 import (
-	"github.com/go-json-experiment/json"
-
 	"braces.dev/errtrace"
+	"github.com/go-json-experiment/json"
 )
 
 // Response contains the standardized API response data used by all My Price Health API's. It is based off of the generalized error handling recommendation found
@@ -119,16 +118,16 @@ func (r ErrorAndResultResponses[Result]) Unwrap() ([]ErrorAndResult[Result], *Er
 
 // ErrorAndResult stores both an error value and a result at the same time.
 type ErrorAndResult[Result any] struct {
-	Error       *ResponseError `json:"error,omitempty"      db:"error"`
-	Result      Result         `json:",inline,omitzero"     db:",inline"`
-	ClaimStatus ClaimStatus    `json:"claimStatus,omitzero" db:"-"` // The step the claim processing reached (for partial results only)
+	Error       *ResponseError `db:"error"`
+	Result      Result         `db:",inline"`
+	ClaimStatus ClaimStatus    `db:"-"` // The step the claim processing reached (for partial results only)
 }
 
 // tmpErrorAndResult is being used until JSONv2 is the default. Until then, we're calling it just for this function
 type tmpErrorAndResult[Result any] struct {
-	Error  *ResponseError `json:"error,omitempty"`
-	Result Result         `json:",inline"`
-	Status ClaimStatus    `json:"status,omitzero"`
+	Error       *ResponseError `json:"error,omitempty"`
+	Result      Result         `json:",inline"`
+	ClaimStatus ClaimStatus    `json:"claimStatus,omitzero"`
 }
 
 func (e ErrorAndResult[Result]) Unwrap() (Result, *ResponseError) {
@@ -144,11 +143,7 @@ func NewErrorAndResult[Result any](result Result, err *ResponseError, status Cla
 }
 
 func (e ErrorAndResult[Result]) MarshalJSON() ([]byte, error) {
-	return errtrace.Wrap2(json.Marshal(tmpErrorAndResult[Result]{
-		Error:  e.Error,
-		Result: e.Result,
-		Status: e.ClaimStatus,
-	}))
+	return errtrace.Wrap2(json.Marshal(tmpErrorAndResult[Result](e)))
 }
 
 func (e *ErrorAndResult[Result]) UnmarshalJSON(data []byte) error {
@@ -156,8 +151,6 @@ func (e *ErrorAndResult[Result]) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &tmp); err != nil {
 		return errtrace.Wrap(err)
 	}
-	e.Error = tmp.Error
-	e.Result = tmp.Result
-	e.ClaimStatus = tmp.Status
+	*e = ErrorAndResult[Result](tmp)
 	return nil
 }
