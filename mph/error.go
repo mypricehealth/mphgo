@@ -130,8 +130,8 @@ func (r *ResponseError) IsEmpty() bool {
 	return r == nil || (r.Title == "" && r.Detail == "")
 }
 
-func (e *ResponseError) HasSpecificMessage() bool {
-	return e != nil && e.Title != fatalEditErrorTitle && e.Detail != editErrorDetail
+func (r *ResponseError) HasSpecificMessage() bool {
+	return r != nil && r.Title != fatalEditErrorTitle && r.Detail != editErrorDetail
 }
 
 func (r *ResponseError) ToClientError() *Error {
@@ -146,21 +146,14 @@ func (r *ResponseError) Scan(value any) error {
 	if !ok {
 		return errtrace.Errorf("cannot scan %T into ResponseError", value)
 	}
-	if errMsg == "" || value == nil {
-		return nil
+	if err := ParseResponseError(errMsg); err != nil {
+		*r = *err
 	}
-
-	titleIndex := strings.Index(errMsg, ": ")
-	if titleIndex == -1 {
-		return errtrace.Errorf("invalid ResponseError format")
-	}
-	r.Title = errMsg[:titleIndex]
-	r.Detail = errMsg[titleIndex+2:]
 	return nil
 }
 
-func (d ResponseError) Value() (driver.Value, error) {
-	return d.Error(), nil
+func (r ResponseError) Value() (driver.Value, error) {
+	return r.Error(), nil
 }
 
 func NewError(title string, err error, errorCode int) *Error {
