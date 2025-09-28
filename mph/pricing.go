@@ -220,7 +220,7 @@ type Pricing struct {
 	ProviderDetail        ProviderDetail        `json:"providerDetail,omitzero"        db:",inline"`                 // The provider details used when pricing the claim
 	EditDetail            *ClaimEdits           `json:"editDetail,omitzero"            db:",inline"`                 // Errors which cause the claim to be denied, rejected, suspended, or returned to the provider
 	PricerResult          string                `json:"pricerResult,omitzero"          db:"pricer_result"`           // Pricer return details
-	PriceConfig           PriceConfig           `json:"priceConfig,omitzero"           db:"-"`                       // The configuration used for pricing the claim
+	PriceConfig           PriceConfig           `json:"priceConfig,omitzero"           db:",inline"`                 // The configuration used for pricing the claim
 	Services              []PricedService       `json:"services,omitzero,omitempty"    db:"services"`                // Pricing for each service line on the claim
 	EditError             *ResponseError        `json:"editError,omitzero"             db:"edit_error"`              // An error that occurred during some step of the pricing process
 }
