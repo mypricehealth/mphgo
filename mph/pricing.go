@@ -67,6 +67,7 @@ const (
 	ClaimRepricingCodeCoralRBPPricing     ClaimRepricingCode = "CRBP"
 	ClaimRepricingCodeSingleCaseAgreement ClaimRepricingCode = "SCA"
 	ClaimRepricingCodeNeedsMoreInfo       ClaimRepricingCode = "IFO"
+	ClaimRepricingCodeOutOfNetwork        ClaimRepricingCode = "OON"
 
 	// line-level Medicare repricing codes.
 
@@ -204,7 +205,7 @@ func (s ClaimStatus) String() string {
 
 // Pricing contains the results of a pricing request
 type Pricing struct {
-	ClaimID               string                `json:"claimID,omitzero"               db:"claim_id"`                // The unique identifier for the claim (copied from input)
+	ClaimID               string                `json:"claimID,omitzero"               db:"-"`                       // The unique identifier for the claim (copied from input)
 	MedicareAmount        float64               `json:"medicareAmount,omitzero"        db:"medicare_amount"`         // The amount Medicare would pay for the service
 	AllowedAmount         float64               `json:"allowedAmount,omitzero"         db:"allowed_amount"`          // The allowed amount based on a contract or RBP pricing
 	MedicareRepricingCode ClaimRepricingCode    `json:"medicareRepricingCode,omitzero" db:"medicare_repricing_code"` // Explains the methodology used to calculate Medicare (MED or IFO)
@@ -219,7 +220,7 @@ type Pricing struct {
 	ProviderDetail        ProviderDetail        `json:"providerDetail,omitzero"        db:",inline"`                 // The provider details used when pricing the claim
 	EditDetail            *ClaimEdits           `json:"editDetail,omitzero"            db:",inline"`                 // Errors which cause the claim to be denied, rejected, suspended, or returned to the provider
 	PricerResult          string                `json:"pricerResult,omitzero"          db:"pricer_result"`           // Pricer return details
-	PriceConfig           PriceConfig           `json:"priceConfig,omitzero"           db:"-"`                       // The configuration used for pricing the claim
+	PriceConfig           PriceConfig           `json:"priceConfig,omitzero"           db:",inline"`                 // The configuration used for pricing the claim
 	Services              []PricedService       `json:"services,omitzero,omitempty"    db:"services"`                // Pricing for each service line on the claim
 	EditError             *ResponseError        `json:"editError,omitzero"             db:"edit_error"`              // An error that occurred during some step of the pricing process
 }

@@ -56,6 +56,13 @@ type testStruct struct {
 	IntVal int    `json:"intVal"`
 }
 
+func TestNewErrorAndResult(t *testing.T) {
+	t.Parallel()
+	res := testStruct{StrVal: "foo", IntVal: 42}
+	v := NewErrorAndResult(res, nil, StatusError)
+	assert.Equal(t, ErrorAndResult[testStruct]{Result: res, ClaimStatus: StatusError}, v)
+}
+
 func TestErrorAndResultResponsesGetError(t *testing.T) {
 	t.Parallel()
 	v := ErrorAndResultResponses[testStruct]{}
@@ -108,6 +115,13 @@ func TestErrorAndResultMarshal(t *testing.T) {
 	data, err := json.Marshal(v)
 	require.NoError(t, err)
 	assert.JSONEq(t, `{"error":{"title":"foo","detail":"bar"},"strVal":"baz","intVal":42}`, string(data))
+
+	v2 := ErrorAndResult[Pricing]{
+		Result: Pricing{MedicareAmount: 123.45},
+	}
+	data, err = json.Marshal(v2)
+	require.NoError(t, err)
+	assert.JSONEq(t, `{"medicareAmount":123.45}`, string(data))
 }
 
 func TestErrorAndResultUnmarshal(t *testing.T) {

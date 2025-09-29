@@ -47,3 +47,18 @@ func TestErrorUnmarshalJSON(t *testing.T) {
 	expected := &Error{Title: "title", ErrorCode: 300}
 	assert.Equal(t, expected, e)
 }
+
+func TestParseResponseError(t *testing.T) {
+	msg := "Title: detail"
+	got := ParseResponseError(msg)
+	want := &ResponseError{Title: "Title", Detail: "detail"}
+	assert.Equal(t, want, got)
+
+	msg = "No colon here"
+	got = ParseResponseError(msg)
+	want = &ResponseError{Title: "Error", Detail: "No colon here"}
+	assert.Equal(t, want, got)
+
+	msg = ""
+	assert.Nil(t, ParseResponseError(msg))
+}
