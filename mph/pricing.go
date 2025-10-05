@@ -100,6 +100,36 @@ const (
 	AcuteCareDODHospitalType   HospitalType = "Acute Care - Department of Defense"
 )
 
+var (
+	ClaimRepricingCodes = map[ClaimRepricingCode]struct{}{
+		ClaimRepricingCodeMedicare:            {},
+		ClaimRepricingCodeContractPricing:     {},
+		ClaimRepricingCodeRBPPricing:          {},
+		ClaimRepricingCodeCoralRBPPricing:     {},
+		ClaimRepricingCodeSingleCaseAgreement: {},
+		ClaimRepricingCodeNeedsMoreInfo:       {},
+		ClaimRepricingCodeOutOfNetwork:        {},
+	}
+	LineRepricingCodes = map[LineRepricingCode]struct{}{
+		LineRepricingCodeMedicare:              {},
+		LineRepricingCodeMedicarePercent:       {},
+		LineRepricingCodeMedicareNoOutlier:     {},
+		LineRepricingCodeSyntheticMedicare:     {},
+		LineRepricingCodeBilledPercent:         {},
+		LineRepricingCodeFeeSchedule:           {},
+		LineRepricingCodePerDiem:               {},
+		LineRepricingCodeFlatRate:              {},
+		LineRepricingCodeCostPercent:           {},
+		LineRepricingCodeLimitedToBilled:       {},
+		LineRepricingCodeNotRepricedPerRequest: {},
+		LineRepricingCodeNotAllowedByMedicare:  {},
+		LineRepricingCodePackaged:              {},
+		LineRepricingCodeNeedsMoreInfo:         {},
+		LineRepricingCodeProcedureCodeProblem:  {},
+		LineRepricingCodeOutOfNetwork:          {},
+	}
+)
+
 const (
 	// Rural indicators.
 	RuralIndicatorRural      RuralIndicator = "R"
