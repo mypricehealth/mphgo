@@ -161,6 +161,32 @@ const (
 	MedicareSourceSynthetic              MedicareSource = "Synthetic Medicare"
 )
 
+var (
+	MedicareSources = map[MedicareSource]struct{}{
+		MedicareSourceAmbulance:              {},
+		MedicareSourceAnesthesia:             {},
+		MedicareSourceASC:                    {},
+		MedicareSourceCriticalAccessHospital: {},
+		MedicareSourceDME:                    {},
+		MedicareSourceDrugs:                  {},
+		MedicareSourceEditError:              {},
+		MedicareSourceEstimateByCodeOnly:     {},
+		MedicareSourceEstimateByLocalityCode: {},
+		MedicareSourceEstimateByLocalityOnly: {},
+		MedicareSourceEstimateByNational:     {},
+		MedicareSourceEstimateByStateCode:    {},
+		MedicareSourceEstimateByStateOnly:    {},
+		MedicareSourceEstimateByUnknown:      {},
+		MedicareSourceInpatient:              {},
+		MedicareSourceLabs:                   {},
+		MedicareSourceMPFS:                   {},
+		MedicareSourceOutpatient:             {},
+		MedicareSourceManualPricing:          {},
+		MedicareSourceSNF:                    {},
+		MedicareSourceSynthetic:              {},
+	}
+)
+
 const (
 	stepNew                  Step = "New"
 	stepReceived             Step = "Received"
