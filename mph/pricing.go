@@ -244,7 +244,7 @@ var (
 )
 
 type ClaimStatus struct {
-	Step   Step   `json:"step,omitempty"`
+	Step   Step   `json:"step"`
 	Status Status `json:"status,omitempty"`
 }
 
