@@ -1,8 +1,6 @@
 package mph
 
-import (
-	"github.com/shopspring/decimal"
-)
+import "github.com/mypricehealth/decimal"
 
 type FormType string         // Type of form used to submit the claim. Can be HCFA or UB-04
 type BillTypeSequence string // The location where the claim is at in its billing lifecycle (e.g. 0: Non-Pay, 1: Admit Through Discharge, 7: Replacement, etc.)
