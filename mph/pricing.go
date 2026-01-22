@@ -288,12 +288,18 @@ func (p Pricing) IsEmpty() bool {
 		p.PricerResult == "" && len(p.Services) == 0 && p.EditError == nil
 }
 
-func (p Pricing) GetRepricingNote() string {
+func (p Pricing) GetRepricingError() string {
 	var buf strings.Builder
 	if p.EditError.HasSpecificMessage() {
 		buf.WriteString(p.EditError.Detail)
 	}
 	addSeparatedMessage(&buf, p.EditDetail.GetMessage())
+	return buf.String()
+}
+
+func (p Pricing) GetRepricingNote() string {
+	var buf strings.Builder
+	buf.WriteString(p.GetRepricingError())
 	if p.AllowedRepricingNote != "" {
 		addSeparatedMessage(&buf, p.AllowedRepricingNote)
 	} else if p.MedicareRepricingNote != "" {
