@@ -193,6 +193,7 @@ const (
 	StepPending              Step = "Pending"
 	stepHeld                 Step = "Held"
 	stepError                Step = "Error"
+	stepDenied               Step = "Denied"
 	stepInputValidated       Step = "Input Validated"
 	stepProviderMatched      Step = "Provider Matched"
 	stepEditComplete         Step = "Edit Complete"
@@ -230,6 +231,7 @@ var (
 	StatusNetworkAllowedPriced               = ClaimStatus{Step: stepNetworkAllowedPriced}                                      // claim has been priced according to the allowed amount of the network
 	StatusOutOfNetwork                       = ClaimStatus{Step: stepOutOfNetwork}                                              // is out of network
 	StatusRequestMoreInfo                    = ClaimStatus{Step: stepRequestMoreInfo}                                           // return claim to trading partner for more information to enable correct processing
+	StatusDenied                             = ClaimStatus{Step: stepDenied}                                                    // claim has been denied for lack of medical necessity or coverage
 	StatusPriced                             = ClaimStatus{Step: stepPriced}                                                    // done pricing
 	StatusReturned                           = ClaimStatus{Step: stepReturned}                                                  // returned to TPA
 	StatusPendingClaimInputValidation        = ClaimStatus{Step: StepPending, Status: statusPendingClaimInputValidation}        // waiting for claim input validation
