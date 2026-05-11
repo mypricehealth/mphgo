@@ -420,6 +420,15 @@ func (o OutpatientPriceDetail) IsEmpty() bool {
 	return o == OutpatientPriceDetail{}
 }
 
+// ProviderType identifies special CMS provider types which may change reimbursement
+type ProviderType struct {
+	IsPhysicianAssistant       bool `json:"isPhysicianAssistant,omitempty"`
+	IsNurseMidwife             bool `json:"isNurseMidwife,omitempty"`
+	IsNursePractitioner        bool `json:"isNursePractitioner,omitempty"`
+	IsCertifiedNurseSpecialist bool `json:"isCertifiedNurseSpecialist,omitempty"`
+	IsClinicalSocialWorker     bool `json:"isClinicalSocialWorker,omitempty"`
+}
+
 // ProviderDetail contains basic information about the provider and/or locality used for pricing
 // Not all fields are returned with every pricing request. For example, the CMS Certification
 // Number (CCN) is only returned for facilities which have a CCN such as hospitals.
@@ -433,6 +442,7 @@ type ProviderDetail struct {
 	SpecialtyType         string         `json:"specialtyType,omitzero"  db:"provider_specialty_type"`  // Medicare provider specialty type
 	HospitalType          HospitalType   `json:"hospitalType,omitzero"   db:"provider_hospital_type"`   // Type of hospital
 	BilledToMedicareRatio float64        `json:"-"                       db:"-"`                        // used for synthetic Medicare. Internal use only
+	ProviderType
 }
 
 var empty ProviderDetail
