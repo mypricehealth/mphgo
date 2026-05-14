@@ -276,6 +276,7 @@ type Pricing struct {
 	InpatientPriceDetail  InpatientPriceDetail  `json:"inpatientPriceDetail,omitzero"  db:",inline"`                 // Details about the inpatient pricing
 	OutpatientPriceDetail OutpatientPriceDetail `json:"outpatientPriceDetail,omitzero" db:",inline"`                 // Details about the outpatient pricing
 	ProviderDetail        ProviderDetail        `json:"providerDetail,omitzero"        db:",inline"`                 // The provider details used when pricing the claim
+	RenderingProvider     ProviderDetail        `json:"renderingProvider,omitzero"     db:"rendering_provider"`      // The rendering provider details used when pricing the claim
 	EditDetail            *ClaimEdits           `json:"editDetail,omitzero"            db:",inline"`                 // Errors which cause the claim to be denied, rejected, suspended, or returned to the provider
 	PricerResult          string                `json:"pricerResult,omitzero"          db:"pricer_result"`           // Pricer return details
 	PriceConfig           PriceConfig           `json:"priceConfig,omitzero"           db:",inline"`                 // The configuration used for pricing the claim
@@ -334,7 +335,8 @@ func (p Pricing) HasFatalError() bool {
 // PricedService contains the results of a pricing request for a single service line.
 type PricedService struct {
 	LineNumber                    string                  `json:"lineNumber,omitzero"                    db:"-"`                                  // Number of the service line item (copied from input)
-	ProviderDetail                *ProviderDetail         `json:"providerDetail,omitzero"                db:",inline"`                            // Provider Details used when pricing the service if different than the claim
+	ProviderDetail                ProviderDetail          `json:"providerDetail,omitzero"                db:",inline"`                            // Provider Details used when pricing the service if different than the claim
+	RenderingProvider             ProviderDetail          `json:"renderingProvider,omitzero"             db:"-"`                                  // Rendering provider details used when pricing the claim if different than the claim
 	MedicareAmount                float64                 `json:"medicareAmount,omitzero"                db:"medicare_amount"`                    // Amount Medicare would pay for the service
 	AllowedAmount                 float64                 `json:"allowedAmount,omitzero"                 db:"allowed_amount"`                     // Allowed amount based on a contract or RBP pricing
 	MedicareRepricingCode         LineRepricingCode       `json:"medicareRepricingCode,omitzero"         db:"medicare_repricing_code"`            // Explains the methodology used to calculate Medicare
@@ -428,6 +430,11 @@ type ProviderType struct {
 	IsNursePractitioner       bool `json:"isNursePractitioner,omitempty"`
 	IsClinicalNurseSpecialist bool `json:"isClinicalNurseSpecialist,omitempty"`
 	IsClinicalSocialWorker    bool `json:"isClinicalSocialWorker,omitempty"`
+}
+
+type Providers struct {
+	BillingProvider   ProviderDetail `json:"billingProvider,omitzero"`
+	RenderingProvider ProviderDetail `json:"renderingProvider,omitzero"`
 }
 
 // ProviderDetail contains basic information about the provider and/or locality used for pricing
