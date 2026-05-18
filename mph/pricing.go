@@ -275,8 +275,8 @@ type Pricing struct {
 	MedicareSource        MedicareSource        `json:"medicareSource,omitzero"        db:"medicare_source"`         // Source of the Medicare amount (e.g. physician fee schedule, OPPS, etc.)
 	InpatientPriceDetail  InpatientPriceDetail  `json:"inpatientPriceDetail,omitzero"  db:",inline"`                 // Details about the inpatient pricing
 	OutpatientPriceDetail OutpatientPriceDetail `json:"outpatientPriceDetail,omitzero" db:",inline"`                 // Details about the outpatient pricing
-	ProviderDetail        ProviderDetail        `json:"providerDetail,omitzero"        db:",inline"`                 // The provider details used when pricing the claim
-	RenderingProvider     ProviderDetail        `json:"renderingProvider,omitzero"     db:"rendering_provider"`      // The rendering provider details used when pricing the claim
+	ProviderDetail        MatchedProvider       `json:"providerDetail,omitzero"        db:",inline"`                 // The billing provider details used when pricing the claim (deprecated - see Providers.BillingProvider)
+	Providers             MatchedProviders      `json:"providers,omitzero"             db:"-"`                       // All provider details used when pricing the claim
 	EditDetail            *ClaimEdits           `json:"editDetail,omitzero"            db:",inline"`                 // Errors which cause the claim to be denied, rejected, suspended, or returned to the provider
 	PricerResult          string                `json:"pricerResult,omitzero"          db:"pricer_result"`           // Pricer return details
 	PriceConfig           PriceConfig           `json:"priceConfig,omitzero"           db:",inline"`                 // The configuration used for pricing the claim
@@ -335,8 +335,8 @@ func (p Pricing) HasFatalError() bool {
 // PricedService contains the results of a pricing request for a single service line.
 type PricedService struct {
 	LineNumber                    string                  `json:"lineNumber,omitzero"                    db:"-"`                                  // Number of the service line item (copied from input)
-	ProviderDetail                ProviderDetail          `json:"providerDetail,omitzero"                db:",inline"`                            // Provider Details used when pricing the service if different than the claim
-	RenderingProvider             ProviderDetail          `json:"renderingProvider,omitzero"             db:"-"`                                  // Rendering provider details used when pricing the claim if different than the claim
+	ProviderDetail                MatchedProvider         `json:"providerDetail,omitzero"                db:",inline"`                            // Billing Provider Details used when pricing the service if different than the claim (deprecated - see Providers)
+	Providers                     MatchedProviders        `json:"providers,omitzero"                     db:"-"`                                  // All provider details used when pricing the service
 	MedicareAmount                float64                 `json:"medicareAmount,omitzero"                db:"medicare_amount"`                    // Amount Medicare would pay for the service
 	AllowedAmount                 float64                 `json:"allowedAmount,omitzero"                 db:"allowed_amount"`                     // Allowed amount based on a contract or RBP pricing
 	MedicareRepricingCode         LineRepricingCode       `json:"medicareRepricingCode,omitzero"         db:"medicare_repricing_code"`            // Explains the methodology used to calculate Medicare
@@ -432,15 +432,16 @@ type ProviderType struct {
 	IsClinicalSocialWorker    bool `json:"isClinicalSocialWorker,omitempty"`
 }
 
-type Providers struct {
-	BillingProvider   ProviderDetail `json:"billingProvider,omitzero"`
-	RenderingProvider ProviderDetail `json:"renderingProvider,omitzero"`
+// MatchedProviders contains the provider details after provider matching has completed
+type MatchedProviders struct {
+	BillingProvider   MatchedProvider `json:"billingProvider,omitzero"`
+	RenderingProvider MatchedProvider `json:"renderingProvider,omitzero"`
 }
 
-// ProviderDetail contains basic information about the provider and/or locality used for pricing
+// MatchedProvider contains basic information about the provider and/or locality used for pricing
 // Not all fields are returned with every pricing request. For example, the CMS Certification
 // Number (CCN) is only returned for facilities which have a CCN such as hospitals.
-type ProviderDetail struct {
+type MatchedProvider struct {
 	CCN                   string         `json:"ccn,omitzero"            db:"provider_ccn"`             // CMS Certification Number for the facility
 	MAC                   uint16         `json:"mac"                     db:"provider_mac"`             // Medicare Administrative Contractor number
 	Locality              uint8          `json:"locality"                db:"provider_locality"`        // Geographic locality number used for pricing
@@ -453,9 +454,9 @@ type ProviderDetail struct {
 	ProviderType
 }
 
-var empty ProviderDetail
+var empty MatchedProvider
 
-func (p *ProviderDetail) IsEmpty() bool {
+func (p *MatchedProvider) IsEmpty() bool {
 	return p == nil || *p == empty
 }
 
