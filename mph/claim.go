@@ -39,7 +39,8 @@ var (
 )
 
 type Claim struct {
-	Provider                            // Provider information for the claim
+	Provider                            // Provider information for the claim (deprecated - use Providers.BillingProvider)
+	Providers          Providers        `json:"providers,omitzero"`          // All providers associated with the claim
 	ClaimID            string           `json:"claimID,omitzero"`            // Unique identifier for the claim (from REF D9)
 	PlanCode           string           `json:"planCode,omitzero"`           // Identifies the subscriber's plan (from SBR03)
 	PatientSex         SexType          `json:"patientSex,omitzero"`         // Biological sex of the patient for clinical purposes (from DMG02). 0:Unknown, 1:Male, 2:Female
@@ -66,6 +67,11 @@ type Claim struct {
 	OccurrenceCodes    []string         `json:"occurrenceCodes,omitempty"`   // Date related occurrences related to the patient or claim (from HI BH)
 	DRG                string           `json:"drg,omitzero"`                // Diagnosis Related Group for inpatient services (from HI DR)
 	Services           []Service        `json:"services,omitempty"`          // One or more services provided to the patient (from LX loop)
+}
+
+type Providers struct {
+	BillingProvider   Provider `json:"billingProvider,omitzero"`   // Provider that billed for the claim (from NM1 loop with NM101=85)
+	RenderingProvider Provider `json:"renderingProvider,omitzero"` // Provider that rendered the service (from NM1 loop with NM101=82)
 }
 
 // Provider represents the service provider that rendered healthcare services on behalf of the patient.
@@ -102,21 +108,22 @@ type ValueCode struct {
 }
 
 type Service struct {
-	Provider                    // Additional provider information specific to this service item
-	LineNumber         string   `json:"lineNumber,omitzero"`         // Unique line number for the service item (from LX01)
-	RevCode            string   `json:"revCode,omitzero"`            // Revenue code (from SV2_01)
-	ProcedureCode      string   `json:"procedureCode,omitzero"`      // Procedure code (from SV101_02 / SV202_02)
-	ProcedureModifiers []string `json:"procedureModifiers,omitzero"` // Procedure modifiers (from SV101_03, 4, 5, 6 / SV202_03, 4, 5, 6)
-	DrugCode           string   `json:"drugCode,omitzero"`           // National Drug Code (from LIN03)
-	DateFrom           Date     `json:"dateFrom,omitzero"`           // Begin date of service (from DTP 472)
-	DateThrough        Date     `json:"dateThrough,omitzero"`        // End date of service (from DTP 472)
-	BilledAmount       float64  `json:"billedAmount,omitzero"`       // Billed charge for the service (from SV102 / SV203)
-	AllowedAmount      float64  `json:"allowedAmount,omitzero"`      // Plan allowed amount for the service (non-EDI)
-	PaidAmount         float64  `json:"paidAmount,omitzero"`         // Plan paid amount for the service (non-EDI)
-	Quantity           float64  `json:"quantity"`                    // Quantity of the service (from SV104 / SV205)
-	Units              string   `json:"units,omitzero"`              // Units connected to the quantity given (from SV103 / SV204)
-	PlaceOfService     string   `json:"placeOfService,omitzero"`     // Place of service code (from SV105)
-	AmbulancePickupZIP string   `json:"ambulancePickupZIP,omitzero"` // ZIP code where ambulance picked up patient. Supplied if different than claim-level value (from NM1 PW)
+	Provider                     // Billing provider information specific to this service item (deprecated - use Providers)
+	Providers          Providers `json:"providers,omitzero"`          // All providers associated with the line item
+	LineNumber         string    `json:"lineNumber,omitzero"`         // Unique line number for the service item (from LX01)
+	RevCode            string    `json:"revCode,omitzero"`            // Revenue code (from SV2_01)
+	ProcedureCode      string    `json:"procedureCode,omitzero"`      // Procedure code (from SV101_02 / SV202_02)
+	ProcedureModifiers []string  `json:"procedureModifiers,omitzero"` // Procedure modifiers (from SV101_03, 4, 5, 6 / SV202_03, 4, 5, 6)
+	DrugCode           string    `json:"drugCode,omitzero"`           // National Drug Code (from LIN03)
+	DateFrom           Date      `json:"dateFrom,omitzero"`           // Begin date of service (from DTP 472)
+	DateThrough        Date      `json:"dateThrough,omitzero"`        // End date of service (from DTP 472)
+	BilledAmount       float64   `json:"billedAmount,omitzero"`       // Billed charge for the service (from SV102 / SV203)
+	AllowedAmount      float64   `json:"allowedAmount,omitzero"`      // Plan allowed amount for the service (non-EDI)
+	PaidAmount         float64   `json:"paidAmount,omitzero"`         // Plan paid amount for the service (non-EDI)
+	Quantity           float64   `json:"quantity"`                    // Quantity of the service (from SV104 / SV205)
+	Units              string    `json:"units,omitzero"`              // Units connected to the quantity given (from SV103 / SV204)
+	PlaceOfService     string    `json:"placeOfService,omitzero"`     // Place of service code (from SV105)
+	AmbulancePickupZIP string    `json:"ambulancePickupZIP,omitzero"` // ZIP code where ambulance picked up patient. Supplied if different than claim-level value (from NM1 PW)
 }
 
 type RateSheet struct {
