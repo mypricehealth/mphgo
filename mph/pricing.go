@@ -434,16 +434,16 @@ func (o OutpatientPriceDetail) IsEmpty() bool {
 // Not all fields are returned with every pricing request. For example, the CMS Certification
 // Number (CCN) is only returned for facilities which have a CCN such as hospitals.
 type ProviderDetail struct {
-	CCN                        string         `json:"ccn,omitzero"                        db:"provider_ccn"`                 // CMS Certification Number for the facility
-	MAC                        uint16         `json:"mac"                                 db:"provider_mac"`                 // Medicare Administrative Contractor number
-	Locality                   uint8          `json:"locality"                            db:"provider_locality"`            // Geographic locality number used for pricing
-	GeographicCBSA             uint32         `json:"geographicCBSA,omitzero"             db:"provider_geographic_cbsa"`     // Core-Based Statistical Area (CBSA) number for provider ZIP
-	StateCBSA                  uint8          `json:"stateCBSA,omitzero"                  db:"provider_state_cbsa"`          // State Core-Based Statistical Area (CBSA) number
-	RuralIndicator             RuralIndicator `json:"ruralIndicator,omitzero"             db:"provider_rural_indicator"`     // Indicates whether provider is Rural (R), Super Rural (B), or Urban (blank)
-	SpecialtyType              string         `json:"specialtyType,omitzero"              db:"provider_specialty"`           // Billing Provider Medicare specialty type
-	RenderingProviderSpecialty string         `json:"renderingProviderSpecialty,omitzero" db:"rendering_provider_specialty"` // Rendering Provider Medicare specialty type
-	HospitalType               HospitalType   `json:"hospitalType,omitzero"               db:"provider_hospital_type"`       // Type of hospital
-	BilledToMedicareRatio      float64        `json:"-"                                   db:"-"`                            // used for synthetic Medicare. Internal use only
+	CCN                            string         `json:"ccn,omitzero"                            db:"provider_ccn"`                      // CMS Certification Number for the facility
+	MAC                            uint16         `json:"mac"                                     db:"provider_mac"`                      // Medicare Administrative Contractor number
+	Locality                       uint8          `json:"locality"                                db:"provider_locality"`                 // Geographic locality number used for pricing
+	GeographicCBSA                 uint32         `json:"geographicCBSA,omitzero"                 db:"provider_geographic_cbsa"`          // Core-Based Statistical Area (CBSA) number for provider ZIP
+	StateCBSA                      uint8          `json:"stateCBSA,omitzero"                      db:"provider_state_cbsa"`               // State Core-Based Statistical Area (CBSA) number
+	RuralIndicator                 RuralIndicator `json:"ruralIndicator,omitzero"                 db:"provider_rural_indicator"`          // Indicates whether provider is Rural (R), Super Rural (B), or Urban (blank)
+	SpecialtyType                  string         `json:"specialtyType,omitzero"                  db:"provider_specialty_type"`           // Billing Provider Medicare specialty type
+	RenderingProviderSpecialtyType string         `json:"renderingProviderSpecialtyType,omitzero" db:"rendering_provider_specialty_type"` // Rendering Provider Medicare specialty type
+	HospitalType                   HospitalType   `json:"hospitalType,omitzero"                   db:"provider_hospital_type"`            // Type of hospital
+	BilledToMedicareRatio          float64        `json:"-"                                       db:"-"`                                 // used for synthetic Medicare. Internal use only
 }
 
 var empty ProviderDetail
