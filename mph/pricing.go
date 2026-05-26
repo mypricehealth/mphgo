@@ -10,6 +10,15 @@ import (
 )
 
 const (
+	ClinicalNurseSpecialistProviderType  = "14-89"
+	NursePractitionerProviderType        = "14-50"
+	PhysicianAssistantProviderType       = "14-97"
+	NurseMidwifeProviderType             = "14-42"
+	ClinicalSocialWorkerProviderType     = "14-80"
+	AmbulatorySurgicalCenterProviderType = "12-49"
+)
+
+const (
 	editErrorTitle        = "claim edits failed"
 	fatalEditErrorTitle   = "fatal edit error"
 	editErrorDetail       = "see editDetail for more information"
@@ -275,8 +284,7 @@ type Pricing struct {
 	MedicareSource        MedicareSource        `json:"medicareSource,omitzero"        db:"medicare_source"`         // Source of the Medicare amount (e.g. physician fee schedule, OPPS, etc.)
 	InpatientPriceDetail  InpatientPriceDetail  `json:"inpatientPriceDetail,omitzero"  db:",inline"`                 // Details about the inpatient pricing
 	OutpatientPriceDetail OutpatientPriceDetail `json:"outpatientPriceDetail,omitzero" db:",inline"`                 // Details about the outpatient pricing
-	ProviderDetail        MatchedProvider       `json:"providerDetail,omitzero"        db:",inline"`                 // The billing provider details used when pricing the claim (deprecated - see Providers.BillingProvider)
-	Providers             MatchedProviders      `json:"providers,omitzero"             db:"-"`                       // All provider details used when pricing the claim
+	ProviderDetail        ProviderDetail        `json:"providerDetail,omitzero"        db:",inline"`                 // The billing provider details used when pricing the claim
 	EditDetail            *ClaimEdits           `json:"editDetail,omitzero"            db:",inline"`                 // Errors which cause the claim to be denied, rejected, suspended, or returned to the provider
 	PricerResult          string                `json:"pricerResult,omitzero"          db:"pricer_result"`           // Pricer return details
 	PriceConfig           PriceConfig           `json:"priceConfig,omitzero"           db:",inline"`                 // The configuration used for pricing the claim
@@ -335,8 +343,7 @@ func (p Pricing) HasFatalError() bool {
 // PricedService contains the results of a pricing request for a single service line.
 type PricedService struct {
 	LineNumber                    string                  `json:"lineNumber,omitzero"                    db:"-"`                                  // Number of the service line item (copied from input)
-	ProviderDetail                MatchedProvider         `json:"providerDetail,omitzero"                db:",inline"`                            // Billing Provider Details used when pricing the service if different than the claim (deprecated - see Providers)
-	Providers                     MatchedProviders        `json:"providers,omitzero"                     db:"-"`                                  // All provider details used when pricing the service
+	ProviderDetail                ProviderDetail          `json:"providerDetail,omitzero"                db:",inline"`                            // Billing Provider Details used when pricing the service if different than the claim (deprecated - see Providers)
 	MedicareAmount                float64                 `json:"medicareAmount,omitzero"                db:"medicare_amount"`                    // Amount Medicare would pay for the service
 	AllowedAmount                 float64                 `json:"allowedAmount,omitzero"                 db:"allowed_amount"`                     // Allowed amount based on a contract or RBP pricing
 	MedicareRepricingCode         LineRepricingCode       `json:"medicareRepricingCode,omitzero"         db:"medicare_repricing_code"`            // Explains the methodology used to calculate Medicare
@@ -423,41 +430,46 @@ func (o OutpatientPriceDetail) IsEmpty() bool {
 	return o == OutpatientPriceDetail{}
 }
 
-// ProviderType identifies special CMS provider types which may change reimbursement
-type ProviderType struct {
-	IsPhysicianAssistant      bool `json:"isPhysicianAssistant,omitempty"`
-	IsNurseMidwife            bool `json:"isNurseMidwife,omitempty"`
-	IsNursePractitioner       bool `json:"isNursePractitioner,omitempty"`
-	IsClinicalNurseSpecialist bool `json:"isClinicalNurseSpecialist,omitempty"`
-	IsClinicalSocialWorker    bool `json:"isClinicalSocialWorker,omitempty"`
-}
-
-// MatchedProviders contains the provider details after provider matching has completed
-type MatchedProviders struct {
-	BillingProvider   MatchedProvider `json:"billingProvider,omitzero"`
-	RenderingProvider MatchedProvider `json:"renderingProvider,omitzero"`
-}
-
-// MatchedProvider contains basic information about the provider and/or locality used for pricing
+// ProviderDetail contains basic information about the provider and/or locality used for pricing
 // Not all fields are returned with every pricing request. For example, the CMS Certification
 // Number (CCN) is only returned for facilities which have a CCN such as hospitals.
-type MatchedProvider struct {
-	CCN                   string         `json:"ccn,omitzero"            db:"provider_ccn"`             // CMS Certification Number for the facility
-	MAC                   uint16         `json:"mac"                     db:"provider_mac"`             // Medicare Administrative Contractor number
-	Locality              uint8          `json:"locality"                db:"provider_locality"`        // Geographic locality number used for pricing
-	GeographicCBSA        uint32         `json:"geographicCBSA,omitzero" db:"provider_geographic_cbsa"` // Core-Based Statistical Area (CBSA) number for provider ZIP
-	StateCBSA             uint8          `json:"stateCBSA,omitzero"      db:"provider_state_cbsa"`      // State Core-Based Statistical Area (CBSA) number
-	RuralIndicator        RuralIndicator `json:"ruralIndicator,omitzero" db:"provider_rural_indicator"` // Indicates whether provider is Rural (R), Super Rural (B), or Urban (blank)
-	SpecialtyType         string         `json:"specialtyType,omitzero"  db:"provider_specialty_type"`  // Medicare provider specialty type
-	HospitalType          HospitalType   `json:"hospitalType,omitzero"   db:"provider_hospital_type"`   // Type of hospital
-	BilledToMedicareRatio float64        `json:"-"                       db:"-"`                        // used for synthetic Medicare. Internal use only
-	ProviderType
+type ProviderDetail struct {
+	CCN                        string         `json:"ccn,omitzero"                        db:"provider_ccn"`                 // CMS Certification Number for the facility
+	MAC                        uint16         `json:"mac"                                 db:"provider_mac"`                 // Medicare Administrative Contractor number
+	Locality                   uint8          `json:"locality"                            db:"provider_locality"`            // Geographic locality number used for pricing
+	GeographicCBSA             uint32         `json:"geographicCBSA,omitzero"             db:"provider_geographic_cbsa"`     // Core-Based Statistical Area (CBSA) number for provider ZIP
+	StateCBSA                  uint8          `json:"stateCBSA,omitzero"                  db:"provider_state_cbsa"`          // State Core-Based Statistical Area (CBSA) number
+	RuralIndicator             RuralIndicator `json:"ruralIndicator,omitzero"             db:"provider_rural_indicator"`     // Indicates whether provider is Rural (R), Super Rural (B), or Urban (blank)
+	SpecialtyType              string         `json:"specialtyType,omitzero"              db:"provider_specialty"`           // Billing Provider Medicare specialty type
+	RenderingProviderSpecialty string         `json:"renderingProviderSpecialty,omitzero" db:"rendering_provider_specialty"` // Rendering Provider Medicare specialty type
+	HospitalType               HospitalType   `json:"hospitalType,omitzero"               db:"provider_hospital_type"`       // Type of hospital
+	BilledToMedicareRatio      float64        `json:"-"                                   db:"-"`                            // used for synthetic Medicare. Internal use only
 }
 
-var empty MatchedProvider
+var empty ProviderDetail
 
-func (p *MatchedProvider) IsEmpty() bool {
+func (p *ProviderDetail) IsEmpty() bool {
 	return p == nil || *p == empty
+}
+
+func (p *ProviderDetail) IsClinicalNurseSpecialist() bool {
+	return p.SpecialtyType == ClinicalNurseSpecialistProviderType
+}
+
+func (p *ProviderDetail) IsNursePractitioner() bool {
+	return p.SpecialtyType == NursePractitionerProviderType
+}
+
+func (p *ProviderDetail) IsPhysicianAssistant() bool {
+	return p.SpecialtyType == PhysicianAssistantProviderType
+}
+
+func (p *ProviderDetail) IsNurseMidwife() bool {
+	return p.SpecialtyType == NurseMidwifeProviderType
+}
+
+func (p *ProviderDetail) IsClinicalSocialWorker() bool {
+	return p.SpecialtyType == ClinicalSocialWorkerProviderType
 }
 
 // ClaimEdits contains errors which cause the claim to be denied, rejected, suspended, or returned to the provider.

@@ -73,9 +73,9 @@ func TestOutpatientPriceDetailIsEmpty(t *testing.T) {
 
 func TestProviderDetailIsEmpty(t *testing.T) {
 	t.Parallel()
-	p := MatchedProvider{}
+	p := ProviderDetail{}
 	assert.True(t, p.IsEmpty())
-	p = MatchedProvider{
+	p = ProviderDetail{
 		CCN: "test",
 	}
 	assert.False(t, p.IsEmpty())
