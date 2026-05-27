@@ -454,23 +454,23 @@ func (p *ProviderDetail) IsEmpty() bool {
 }
 
 func (p *ProviderDetail) IsClinicalNurseSpecialist() bool {
-	return p.SpecialtyType == ClinicalNurseSpecialistProviderType
+	return p.SpecialtyType == ClinicalNurseSpecialistProviderType || p.RenderingProviderSpecialtyType == ClinicalNurseSpecialistProviderType
 }
 
 func (p *ProviderDetail) IsNursePractitioner() bool {
-	return p.SpecialtyType == NursePractitionerProviderType
+	return p.SpecialtyType == NursePractitionerProviderType || p.RenderingProviderSpecialtyType == NursePractitionerProviderType
 }
 
 func (p *ProviderDetail) IsPhysicianAssistant() bool {
-	return p.SpecialtyType == PhysicianAssistantProviderType
+	return p.SpecialtyType == PhysicianAssistantProviderType || p.RenderingProviderSpecialtyType == PhysicianAssistantProviderType
 }
 
 func (p *ProviderDetail) IsNurseMidwife() bool {
-	return p.SpecialtyType == NurseMidwifeProviderType
+	return p.SpecialtyType == NurseMidwifeProviderType || p.RenderingProviderSpecialtyType == NurseMidwifeProviderType
 }
 
 func (p *ProviderDetail) IsClinicalSocialWorker() bool {
-	return p.SpecialtyType == ClinicalSocialWorkerProviderType
+	return p.SpecialtyType == ClinicalSocialWorkerProviderType || p.RenderingProviderSpecialtyType == ClinicalSocialWorkerProviderType
 }
 
 // ClaimEdits contains errors which cause the claim to be denied, rejected, suspended, or returned to the provider.
