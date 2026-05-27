@@ -357,7 +357,8 @@ type PricedService struct {
 	MedicareStdDev                float64                 `json:"medicareStdDev,omitzero"                db:"medicare_std_dev"`                   // Standard deviation of the estimated Medicare amount (estimates service only)
 	MedicareSource                MedicareSource          `json:"medicareSource,omitzero"                db:"medicare_source"`                    // Source of the Medicare amount (e.g. physician fee schedule, OPPS, etc.)
 	PricerResult                  string                  `json:"pricerResult,omitzero"                  db:"pricer_result"`                      // Pricing service return details
-	TypeOfServiceCode             string                  `json:"typeOfServiceCode,omitzero"             db:"type_of_service_code"`               // Code describing the type of service (e.g. 2 = Surgery)
+	TypeOfServiceText             string                  `json:"typeOfServiceText,omitzero"             db:"type_of_service"`                    // Text describing the type of service (e.g. Surgery)
+	TypeOfServiceCode             string                  `json:"typeOfServiceCode,omitzero"             db:"-"`                                  // Code for the type of service (e.g. 2 = Surgery)
 	StatusIndicator               string                  `json:"statusIndicator,omitzero"               db:"status_indicator"`                   // Code which gives more detail about how Medicare pays for the service (outpatient + professional)
 	PaymentIndicator              string                  `json:"paymentIndicator,omitzero"              db:"payment_indicator"`                  // Text which explains the type of payment for Medicare (outpatient only)
 	DiscountFormula               string                  `json:"discountFormula,omitzero"               db:"discount_formula"`                   // The multi-procedure discount formula used to calculate the allowed amount (outpatient only)
