@@ -39,7 +39,6 @@ var (
 )
 
 type Claim struct {
-	Provider                            // Provider information for the claim (deprecated - use Providers.BillingProvider)
 	Providers          Providers        `json:"providers,omitzero"`          // All providers associated with the claim
 	ClaimID            string           `json:"claimID,omitzero"`            // Unique identifier for the claim (from REF D9)
 	PlanCode           string           `json:"planCode,omitzero"`           // Identifies the subscriber's plan (from SBR03)
@@ -69,32 +68,36 @@ type Claim struct {
 	Services           []Service        `json:"services,omitempty"`          // One or more services provided to the patient (from LX loop)
 }
 
-type Providers struct {
-	BillingProvider   Provider `json:"billingProvider,omitzero"`   // Provider that billed for the claim (from NM1 loop with NM101=85)
-	RenderingProvider Provider `json:"renderingProvider,omitzero"` // Provider that rendered the service (from NM1 loop with NM101=82)
+type ServiceProviders struct {
+	RenderingProvider Provider `json:"renderingProvider,omitzero"` // The provider that performed the services rendered
 }
 
-// Provider represents the service provider that rendered healthcare services on behalf of the patient.
+type Providers struct {
+	BillingProvider   Provider `json:"billingProvider,omitzero"`   // The provider that is billing for services rendered
+	RenderingProvider Provider `json:"renderingProvider,omitzero"` // The provider that performed the services rendered
+}
+
+// Provider represents the service provider that rendered healthcare services on behalf of the patient
 // This can be found in Loop 2000A and/or Loop 2310 NM101-77 at the claim level, and may also be overridden
 // at the service level in the 2400 loop.
 type Provider struct {
-	NPI                      string   `json:"npi,omitzero"`                      // National Provider Identifier of the provider (from NM109, required)
-	CCN                      string   `json:"ccn,omitzero"`                      // CMS Certification Number (optional)
-	ProviderTaxID            string   `json:"providerTaxID,omitzero"`            // Tax ID of the provider (from REF highly recommended)
-	ProviderPhones           []string `json:"providerPhones,omitzero"`           // Phone numbers of the provider (from PER, optional)
-	ProviderFaxes            []string `json:"providerFaxes,omitzero"`            // Fax numbers of the provider (from PER, optional)
-	ProviderEmails           []string `json:"providerEmails,omitzero"`           // Email addresses of the provider (from PER, optional)
-	ProviderLicenseNumber    string   `json:"providerLicenseNumber,omitzero"`    // State license number of the provider (from REF 0B, optional)
-	ProviderCommercialNumber string   `json:"providerCommercialNumber,omitzero"` // Commercial number of the provider used by some payers (from REF G2, optional)
-	ProviderTaxonomy         string   `json:"providerTaxonomy,omitzero"`         // Taxonomy code of the provider (from PRV03, highly recommended)
-	ProviderFirstName        string   `json:"providerFirstName,omitzero"`        // First name of the provider (NM104, highly recommended)
-	ProviderLastName         string   `json:"providerLastName,omitzero"`         // Last name of the provider (from NM103, highly recommended)
-	ProviderOrgName          string   `json:"providerOrgName,omitzero"`          // Organization name of the provider (from NM103, highly recommended)
-	ProviderAddress1         string   `json:"providerAddress1,omitzero"`         // Address line 1 of the provider (from N301, highly recommended)
-	ProviderAddress2         string   `json:"providerAddress2,omitzero"`         // Address line 2 of the provider (from N302, optional)
-	ProviderCity             string   `json:"providerCity,omitzero"`             // City of the provider (from N401, highly recommended)
-	ProviderState            string   `json:"providerState,omitzero"`            // State of the provider (from N402, highly recommended)
-	ProviderZIP              string   `json:"providerZIP,omitzero"`              // ZIP code of the provider (from N403, required)
+	NPI              string   `json:"npi,omitempty"`              // National Provider Identifier of the provider (from NM109, required)
+	CCN              string   `json:"ccn,omitzero"`               // CMS Certification Number (optional)
+	TaxID            string   `json:"taxID,omitempty"`            // Tax ID of the provider (from REF highly recommended)
+	Phones           []string `json:"phones,omitempty"`           // Phone numbers of the provider (from PER, optional)
+	Fax              string   `json:"fax,omitempty"`              // Fax number of the provider (from PER, optional)
+	Email            string   `json:"email,omitempty"`            // Email address of the provider (from PER, optional)
+	LicenseNumber    string   `json:"licenseNumber,omitempty"`    // State license number of the provider (from REF 0B, optional)
+	CommercialNumber string   `json:"commercialNumber,omitempty"` // Commercial number of the provider used by some payers (from REF G2, optional)
+	Taxonomy         string   `json:"taxonomy,omitempty"`         // Taxonomy code of the provider (from PRV03, highly recommended)
+	FirstName        string   `json:"firstName,omitempty"`        // First name of the provider (NM104, highly recommended)
+	LastName         string   `json:"lastName,omitempty"`         // Last name of the provider (from NM103, highly recommended)
+	OrgName          string   `json:"orgName,omitempty"`          // Organization name of the provider (from NM103, highly recommended)
+	Address1         string   `json:"address1,omitempty"`         // Address line 1 of the provider (from N301, highly recommended)
+	Address2         string   `json:"address2,omitempty"`         // Address line 2 of the provider (from N302, optional)
+	City             string   `json:"city,omitempty"`             // City of the provider (from N401, highly recommended)
+	State            string   `json:"state,omitempty"`            // State of the provider (from N402, highly recommended)
+	ZIP              string   `json:"zip,omitempty"`              // ZIP code of the provider (from N403, required)
 }
 
 type Diagnosis struct { // Principal, Other Diagnosis, Admitting Diagnosis, External Cause of Injury
@@ -108,22 +111,21 @@ type ValueCode struct {
 }
 
 type Service struct {
-	Provider                     // Billing provider information specific to this service item (deprecated - use Providers)
-	Providers          Providers `json:"providers,omitzero"`          // All providers associated with the line item
-	LineNumber         string    `json:"lineNumber,omitzero"`         // Unique line number for the service item (from LX01)
-	RevCode            string    `json:"revCode,omitzero"`            // Revenue code (from SV2_01)
-	ProcedureCode      string    `json:"procedureCode,omitzero"`      // Procedure code (from SV101_02 / SV202_02)
-	ProcedureModifiers []string  `json:"procedureModifiers,omitzero"` // Procedure modifiers (from SV101_03, 4, 5, 6 / SV202_03, 4, 5, 6)
-	DrugCode           string    `json:"drugCode,omitzero"`           // National Drug Code (from LIN03)
-	DateFrom           Date      `json:"dateFrom,omitzero"`           // Begin date of service (from DTP 472)
-	DateThrough        Date      `json:"dateThrough,omitzero"`        // End date of service (from DTP 472)
-	BilledAmount       float64   `json:"billedAmount,omitzero"`       // Billed charge for the service (from SV102 / SV203)
-	AllowedAmount      float64   `json:"allowedAmount,omitzero"`      // Plan allowed amount for the service (non-EDI)
-	PaidAmount         float64   `json:"paidAmount,omitzero"`         // Plan paid amount for the service (non-EDI)
-	Quantity           float64   `json:"quantity"`                    // Quantity of the service (from SV104 / SV205)
-	Units              string    `json:"units,omitzero"`              // Units connected to the quantity given (from SV103 / SV204)
-	PlaceOfService     string    `json:"placeOfService,omitzero"`     // Place of service code (from SV105)
-	AmbulancePickupZIP string    `json:"ambulancePickupZIP,omitzero"` // ZIP code where ambulance picked up patient. Supplied if different than claim-level value (from NM1 PW)
+	ServiceProviders            // One or more providers. Overrides claim-level provider information if present
+	LineNumber         string   `json:"lineNumber,omitzero"`         // Unique line number for the service item (from LX01)
+	RevCode            string   `json:"revCode,omitzero"`            // Revenue code (from SV2_01)
+	ProcedureCode      string   `json:"procedureCode,omitzero"`      // Procedure code (from SV101_02 / SV202_02)
+	ProcedureModifiers []string `json:"procedureModifiers,omitzero"` // Procedure modifiers (from SV101_03, 4, 5, 6 / SV202_03, 4, 5, 6)
+	DrugCode           string   `json:"drugCode,omitzero"`           // National Drug Code (from LIN03)
+	DateFrom           Date     `json:"dateFrom,omitzero"`           // Begin date of service (from DTP 472)
+	DateThrough        Date     `json:"dateThrough,omitzero"`        // End date of service (from DTP 472)
+	BilledAmount       float64  `json:"billedAmount,omitzero"`       // Billed charge for the service (from SV102 / SV203)
+	AllowedAmount      float64  `json:"allowedAmount,omitzero"`      // Plan allowed amount for the service (non-EDI)
+	PaidAmount         float64  `json:"paidAmount,omitzero"`         // Plan paid amount for the service (non-EDI)
+	Quantity           float64  `json:"quantity"`                    // Quantity of the service (from SV104 / SV205)
+	Units              string   `json:"units,omitzero"`              // Units connected to the quantity given (from SV103 / SV204)
+	PlaceOfService     string   `json:"placeOfService,omitzero"`     // Place of service code (from SV105)
+	AmbulancePickupZIP string   `json:"ambulancePickupZIP,omitzero"` // ZIP code where ambulance picked up patient. Supplied if different than claim-level value (from NM1 PW)
 }
 
 type RateSheet struct {
