@@ -398,16 +398,21 @@ func (s PricedService) GetRepricingNote() string {
 
 // InpatientPriceDetail contains pricing details for an inpatient claim.
 type InpatientPriceDetail struct {
-	DRG                            string  `json:"drg,omitzero"                            db:"inpatient_drg"`                               // Diagnosis Related Group (DRG) code used to price the claim
-	DRGAmount                      float64 `json:"drgAmount,omitzero"                      db:"inpatient_drg_amount"`                        // Amount Medicare would pay for the DRG
-	PassthroughAmount              float64 `json:"passthroughAmount,omitzero"              db:"inpatient_passthrough_amount"`                // Per diem amount to cover capital-related costs, direct medical education, and other costs
-	OutlierAmount                  float64 `json:"outlierAmount,omitzero"                  db:"inpatient_outlier_amount"`                    // Additional amount paid for high cost cases
-	IndirectMedicalEducationAmount float64 `json:"indirectMedicalEducationAmount,omitzero" db:"inpatient_indirect_medical_education_amount"` // Additional amount paid for teaching hospitals
-	DisproportionateShareAmount    float64 `json:"disproportionateShareAmount,omitzero"    db:"inpatient_disproportionate_share_amount"`     // Additional amount paid for hospitals with a high number of low-income patients
-	UncompensatedCareAmount        float64 `json:"uncompensatedCareAmount,omitzero"        db:"inpatient_uncompensated_care_amount"`         // Additional amount paid for patients who are unable to pay for their care
-	ReadmissionAdjustmentAmount    float64 `json:"readmissionAdjustmentAmount,omitzero"    db:"inpatient_readmission_adjustment_amount"`     // Adjustment amount for hospitals with high readmission rates
-	ValueBasedPurchasingAmount     float64 `json:"valueBasedPurchasingAmount,omitzero"     db:"inpatient_value_based_purchasing_amount"`     // Adjustment for hospitals based on quality measures
-	WageIndex                      float64 `json:"wageIndex,omitzero"                      db:"inpatient_wage_index"`                        // Wage index used for geographic adjustment
+	DRG                                       string  `json:"drg,omitzero"                                       db:"inpatient_drg"`                                           // Diagnosis Related Group (DRG) code used to price the claim
+	FederalDRGAmount                          float64 `json:"federalDRGAmount,omitzero"                          db:"inpatient_federal_drg_amount"`                            // Federal DRG rate (excludes outliers and any hospital-specific adjustments)
+	PassthroughAmount                         float64 `json:"passthroughAmount,omitzero"                         db:"inpatient_passthrough_amount"`                            // Per diem amount to cover capital-related costs, direct medical education, and other costs
+	OutlierAmount                             float64 `json:"outlierAmount,omitzero"                             db:"inpatient_outlier_amount"`                                // Payment for high cost cases
+	IndirectMedicalEducationAmount            float64 `json:"indirectMedicalEducationAmount,omitzero"            db:"inpatient_indirect_medical_education_amount"`             // Payment for teaching hospitals
+	DisproportionateShareAmount               float64 `json:"disproportionateShareAmount,omitzero"               db:"inpatient_disproportionate_share_amount"`                 // Payment for hospitals with a high number of low-income patients
+	UncompensatedCareAmount                   float64 `json:"uncompensatedCareAmount,omitzero"                   db:"inpatient_uncompensated_care_amount"`                     // Payment for patients who are unable to pay for their care
+	ReadmissionAdjustmentAmount               float64 `json:"readmissionAdjustmentAmount,omitzero"               db:"inpatient_readmission_adjustment_amount"`                 // Adjustment for hospitals with high readmission rates
+	NewTechnologyAmount                       float64 `json:"newTechnologyAmount,omitzero"                       db:"inpatient_new_technology_amount"`                         // Payment for new medical technologies
+	ValueBasedPurchasingAdjustmentAmount      float64 `json:"valueBasedPurchasingAdjustmentAmount,omitzero"      db:"inpatient_value_based_purchasing_adjustment_amount"`      // Adjustment for hospitals based on quality measures
+	HospitalAcquiredConditionAdjustmentAmount float64 `json:"hospitalAcquiredConditionAdjustmentAmount,omitzero" db:"inpatient_hospital_acquired_condition_adjustment_amount"` // Adjustment for hospitals with high rates of hospital-acquired conditions
+	LowVolumeAdjustmentAmount                 float64 `json:"lowVolumeAdjustmentAmount,omitzero"                 db:"inpatient_low_volume_adjustment_amount"`                  // Adjustment for hospitals with low patient volumes
+	ElectronicHealthRecordAdjustmentAmount    float64 `json:"electronicHealthRecordAdjustmentAmount,omitzero"    db:"inpatient_electronic_health_record_adjustment_amount"`    // Adjustment for hospitals that have adopted electronic health records
+	BundleAdjustmentAmount                    float64 `json:"bundleAdjustmentAmount,omitzero"                    db:"inpatient_bundle_adjustment_amount"`                      // Adjustment for bundled payments
+	WageIndex                                 float64 `json:"wageIndex,omitzero"                                 db:"inpatient_wage_index"`                                    // Wage index used for geographic adjustment
 }
 
 func (i InpatientPriceDetail) IsEmpty() bool {
@@ -416,7 +421,7 @@ func (i InpatientPriceDetail) IsEmpty() bool {
 
 // OutpatientPriceDetail contains pricing details for an outpatient claim.
 type OutpatientPriceDetail struct {
-	OutlierAmount                         float64 `json:"outlierAmount,omitzero"                         db:"outpatient_outlier_amount"`                              // Additional amount paid for high cost cases
+	OutlierAmount                         float64 `json:"outlierAmount,omitzero"                         db:"outpatient_outlier_amount"`                              // Adjustment for high cost cases
 	FirstPassthroughDrugOffsetAmount      float64 `json:"firstPassthroughDrugOffsetAmount,omitzero"      db:"outpatient_first_passthrough_drug_offset_amount"`        // Amount built into the APC payment for certain drugs
 	SecondPassthroughDrugOffsetAmount     float64 `json:"secondPassthroughDrugOffsetAmount,omitzero"     db:"outpatient_second_passthrough_drug_offset_amount"`       // Amount built into the APC payment for certain drugs
 	ThirdPassthroughDrugOffsetAmount      float64 `json:"thirdPassthroughDrugOffsetAmount,omitzero"      db:"outpatient_third_passthrough_drug_offset_amount"`        // Amount built into the APC payment for certain drugs
