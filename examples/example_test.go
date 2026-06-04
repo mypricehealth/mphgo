@@ -11,6 +11,7 @@ import (
 	"braces.dev/errtrace"
 	"github.com/mypricehealth/mphgo/mph"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var config = mph.PriceConfig{
@@ -24,15 +25,16 @@ var config = mph.PriceConfig{
 }
 
 func TestClientWithJSON(t *testing.T) {
+	t.Parallel()
 	t.SkipNow()
 
 	c := mph.NewDefaultClient("apiKey") // replace this with your API key
 	inpatientClaim, err := readJSON("testdata/inpatient.json")
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	outpatientClaim, err := readJSON("testdata/outpatient.json")
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	hcfaClaim, err := readJSON("testdata/hcfa.json")
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	result := c.Price(context.Background(), config, inpatientClaim)
 	assert.Nil(t, result.Error)
@@ -59,6 +61,7 @@ func readJSON(filename string) (mph.Claim, error) {
 }
 
 func TestClientConstructingStructs(t *testing.T) {
+	t.Parallel()
 	t.SkipNow()
 
 	c := mph.NewDefaultClient("apiKey") // replace this with your API key
@@ -71,11 +74,13 @@ func TestClientConstructingStructs(t *testing.T) {
 	fmt.Println(result.Result.MedicareAmount)
 }
 
-// fake inpatient claim for testing purposes
+// fake inpatient claim for testing purposes.
 var inpatientClaim = mph.Claim{
-	Provider: mph.Provider{
-		NPI:         "1962999664",
-		ProviderZIP: "35960",
+	Providers: mph.Providers{
+		BillingProvider: mph.Provider{
+			NPI: "1962999664",
+			ZIP: "35960",
+		},
 	},
 	DRG:                "461",
 	PatientDateOfBirth: mph.NewDatePtr(1988, 1, 2),
@@ -101,16 +106,18 @@ var inpatientClaim = mph.Claim{
 
 var date = mph.Date{Time: time.Date(2020, 9, 11, 0, 0, 0, 0, time.UTC)}
 
-// fake outpatient claim for testing purposes
+// fake outpatient claim for testing purposes.
 var outpatientClaim = mph.Claim{
-	Provider: mph.Provider{
-		NPI:              "1164403861",
-		ProviderOrgName:  "SOUTHEAST ALABAMA MEDICAL CENTER",
-		ProviderAddress1: "1108 ROSS CLARK CIRCLE",
-		ProviderCity:     "DOTHAN",
-		ProviderState:    "AL",
-		ProviderZIP:      "36301",
-		ProviderTaxonomy: "282N00000X",
+	Providers: mph.Providers{
+		BillingProvider: mph.Provider{
+			NPI:      "1164403861",
+			OrgName:  "SOUTHEAST ALABAMA MEDICAL CENTER",
+			Address1: "1108 ROSS CLARK CIRCLE",
+			City:     "DOTHAN",
+			State:    "AL",
+			ZIP:      "36301",
+			Taxonomy: "282N00000X",
+		},
 	},
 	PatientSex:         1,
 	PatientDateOfBirth: &mph.Date{Time: time.Date(1926, 11, 11, 0, 0, 0, 0, time.UTC)},
