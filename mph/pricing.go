@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"braces.dev/errtrace"
+	"github.com/bwmarrin/snowflake"
 	"github.com/mypricehealth/mphgo/set"
 )
 
@@ -342,6 +343,7 @@ func (p Pricing) HasFatalError() bool {
 
 // PricedService contains the results of a pricing request for a single service line.
 type PricedService struct {
+	LineItemID                    snowflake.ID            `json:"lineItemID,omitzero"                    db:"line_item_id"`
 	LineNumber                    string                  `json:"lineNumber,omitzero"                    db:"-"`                                  // Number of the service line item (copied from input)
 	ProviderDetail                ProviderDetail          `json:"providerDetail,omitzero"                db:",inline"`                            // Provider Details used when pricing the service if different than the claim
 	MedicareAmount                float64                 `json:"medicareAmount,omitzero"                db:"medicare_amount"`                    // Amount Medicare would pay for the service
