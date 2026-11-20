@@ -88,7 +88,7 @@ const (
 	LineRepricingCodeBilledPercent     LineRepricingCode = "BIL"
 	LineRepricingCodeFeeSchedule       LineRepricingCode = "FSC"
 	LineRepricingCodePerDiem           LineRepricingCode = "PDM"
-	LineRepricingCodeFlatRate          LineRepricingCode = "FLT"
+	LineRepricingCodeCaseRate          LineRepricingCode = "CAS"
 	LineRepricingCodeCostPercent       LineRepricingCode = "CST"
 	LineRepricingCodeLimitedToBilled   LineRepricingCode = "LTB"
 
@@ -128,7 +128,7 @@ var (
 		LineRepricingCodeBilledPercent:         {},
 		LineRepricingCodeFeeSchedule:           {},
 		LineRepricingCodePerDiem:               {},
-		LineRepricingCodeFlatRate:              {},
+		LineRepricingCodeCaseRate:              {},
 		LineRepricingCodeCostPercent:           {},
 		LineRepricingCodeLimitedToBilled:       {},
 		LineRepricingCodeNotRepricedPerRequest: {},
@@ -379,7 +379,7 @@ type AllowedRepricingFormula struct {
 	MedicarePercent float64 `json:"medicarePercent,omitzero" db:"allowed_repricing_formula_medicare_percent"` // Percentage of the Medicare amount used to calculate the allowed amount
 	BilledPercent   float64 `json:"billedPercent,omitzero"   db:"allowed_repricing_formula_billed_percent"`   // Percentage of the billed amount used to calculate the allowed amount
 	FeeSchedule     float64 `json:"feeSchedule,omitzero"     db:"allowed_repricing_formula_fee_schedule"`     // Fee schedule amount used as the allowed amount
-	FixedAmount     float64 `json:"fixedAmount,omitzero"     db:"allowed_repricing_formula_fixed_amount"`     // Fixed amount used as the allowed amount
+	CaseRate        float64 `json:"caseRate,omitzero"        db:"allowed_repricing_formula_case_rate"`        // Case rate used as the allowed amount
 	PerDiem         float64 `json:"perDiem,omitzero"         db:"allowed_repricing_formula_per_diem"`         // Per diem rate used to calculate the allowed amount
 }
 
